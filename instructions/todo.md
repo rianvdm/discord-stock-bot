@@ -40,19 +40,19 @@
 ## ✅ Phase 1: Project Foundation
 
 ### Step 1: Project Setup
-- [ ] Create project directory: `discord-stock-bot/`
-- [ ] Run `npm init` to create package.json
-- [ ] Install dependencies: discord-interactions@^3.4.0, openai@^4.20.0
-- [ ] Install dev dependencies: wrangler@^3.20.0, vitest@^1.0.0, @cloudflare/workers-types@^4.20231218.0
-- [ ] Create wrangler.toml with placeholder KV namespace IDs
-- [ ] Create src/config.js with all CONFIG constants from spec
-- [ ] Create .gitignore (node_modules/, .dev.vars, .wrangler/, dist/)
-- [ ] Create vitest.config.js
-- [ ] Create directory structure: src/{commands,services,middleware,utils}/, tests/, scripts/
-- [ ] Add npm scripts: test, test:watch, dev, deploy
-- [ ] Create basic src/index.js with "Bot is running" response
-- [ ] Test: Run `npm test` (should work even with no tests)
-- [ ] Test: Run `wrangler dev` (should start without errors)
+- [x] Create project directory: `discord-stock-bot/`
+- [x] Run `npm init` to create package.json
+- [x] Install dependencies: discord-interactions@^3.4.0, openai@^4.20.0
+- [x] Install dev dependencies: wrangler@^3.20.0, vitest@^1.0.0, @cloudflare/workers-types@^4.20231218.0
+- [x] Create wrangler.toml with placeholder KV namespace IDs
+- [x] Create src/config.js with all CONFIG constants from spec
+- [x] Create .gitignore (node_modules/, .dev.vars, .wrangler/, dist/)
+- [x] Create vitest.config.js
+- [x] Create directory structure: src/{commands,services,middleware,utils}/, tests/, scripts/
+- [x] Add npm scripts: test, test:watch, dev, deploy
+- [x] Create basic src/index.js with "Bot is running" response
+- [x] Test: Run `npm test` (should work even with no tests)
+- [x] Test: Run `wrangler dev` (should start without errors)
 
 ### Step 2: Validator Utility
 - [ ] Create tests/utils/validator.test.js
