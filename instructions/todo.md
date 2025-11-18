@@ -55,18 +55,18 @@
 - [x] Test: Run `wrangler dev` (should start without errors)
 
 ### Step 2: Validator Utility
-- [ ] Create tests/utils/validator.test.js
-- [ ] Write test: Valid uppercase tickers (AAPL, GOOGL, NET)
-- [ ] Write test: Lowercase conversion (aapl → AAPL)
-- [ ] Write test: Invalid empty string
-- [ ] Write test: Invalid numbers only
-- [ ] Write test: Invalid special characters
-- [ ] Write test: Invalid too long (>10 chars)
-- [ ] Write test: Whitespace trimming
-- [ ] Write test: Null/undefined handling
-- [ ] Implement src/utils/validator.js with validateTicker function
-- [ ] Run tests: All validator tests passing
-- [ ] Code review: Check validation logic is secure
+- [x] Create tests/utils/validator.test.js
+- [x] Write test: Valid uppercase tickers (AAPL, GOOGL, NET)
+- [x] Write test: Lowercase conversion (aapl → AAPL)
+- [x] Write test: Invalid empty string
+- [x] Write test: Invalid numbers only
+- [x] Write test: Invalid special characters
+- [x] Write test: Invalid too long (>10 chars)
+- [x] Write test: Whitespace trimming
+- [x] Write test: Null/undefined handling
+- [x] Implement src/utils/validator.js with validateTicker function
+- [x] Run tests: All validator tests passing
+- [x] Code review: Check validation logic is secure
 
 ### Step 3: Error Handler
 - [ ] Create tests/utils/errorHandler.test.js
