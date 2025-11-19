@@ -191,38 +191,38 @@ Verify you have all required credentials saved:
 ## ✅ Phase 2: Infrastructure
 
 ### Step 6: Cache Manager
-- [ ] Create tests/middleware/cache.test.js
-- [ ] Write test: Key generation for price data
-- [ ] Write test: Key generation for history data
-- [ ] Write test: Key generation for summary data
-- [ ] Write test: Get operation (cache hit)
-- [ ] Write test: Get operation (cache miss)
-- [ ] Write test: Set operation with TTL
-- [ ] Write test: JSON serialization/deserialization
-- [ ] Write test: KV error handling
-- [ ] Mock KV namespace for tests
-- [ ] Implement src/middleware/cache.js
-- [ ] Implement generateCacheKey function
-- [ ] Implement getCached function
-- [ ] Implement setCached function
-- [ ] Implement getTTL function
-- [ ] Run tests: All cache tests passing
-- [ ] Verify TTLs are correct (300s, 3600s, 28800s)
+- [x] Create tests/middleware/cache.test.js
+- [x] Write test: Key generation for price data
+- [x] Write test: Key generation for history data
+- [x] Write test: Key generation for summary data
+- [x] Write test: Get operation (cache hit)
+- [x] Write test: Get operation (cache miss)
+- [x] Write test: Set operation with TTL
+- [x] Write test: JSON serialization/deserialization
+- [x] Write test: KV error handling
+- [x] Mock KV namespace for tests
+- [x] Implement src/middleware/cache.js
+- [x] Implement generateCacheKey function
+- [x] Implement getCached function
+- [x] Implement setCached function
+- [x] Implement getTTL function
+- [x] Run tests: All cache tests passing
+- [x] Verify TTLs are correct (300s, 3600s, 28800s)
 
 ### Step 7: Rate Limiter
-- [ ] Create tests/middleware/rateLimit.test.js
-- [ ] Write test: First request allowed
-- [ ] Write test: Second request within 60s blocked
-- [ ] Write test: Request after 60s allowed
-- [ ] Write test: Time remaining calculation
-- [ ] Write test: Multiple users don't interfere
-- [ ] Write test: KV error handling (fail open)
-- [ ] Implement src/middleware/rateLimit.js
-- [ ] Implement checkRateLimit function
-- [ ] Implement updateRateLimit function
-- [ ] Implement enforceRateLimit function
-- [ ] Run tests: All rate limit tests passing
-- [ ] Verify rate limit TTL is 60 seconds
+- [x] Create tests/middleware/rateLimit.test.js
+- [x] Write test: First request allowed
+- [x] Write test: Second request within 60s blocked
+- [x] Write test: Request after 60s allowed
+- [x] Write test: Time remaining calculation
+- [x] Write test: Multiple users don't interfere
+- [x] Write test: KV error handling (fail open)
+- [x] Implement src/middleware/rateLimit.js
+- [x] Implement checkRateLimit function
+- [x] Implement updateRateLimit function
+- [x] Implement enforceRateLimit function
+- [x] Run tests: All rate limit tests passing
+- [x] Verify rate limit TTL is 60 seconds
 
 ---
 
