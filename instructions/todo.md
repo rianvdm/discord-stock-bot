@@ -170,21 +170,21 @@ Verify you have all required credentials saved:
 - [x] Visual verification: Check charts look correct for various patterns
 
 ### Step 5: Embed Builder
-- [ ] Create tests/utils/embedBuilder.test.js
-- [ ] Write test: Color selection based on positive price change
-- [ ] Write test: Color selection based on negative price change
-- [ ] Write test: Color selection for neutral/zero change
-- [ ] Write test: Embed structure validation
-- [ ] Write test: All required fields present
-- [ ] Write test: Partial data handling (missing AI summary)
-- [ ] Write test: Footer formatting with timestamp
-- [ ] Write test: Help embed structure
-- [ ] Implement src/utils/embedBuilder.js
-- [ ] Implement getEmbedColor function
-- [ ] Implement buildStockEmbed function
-- [ ] Implement buildHelpEmbed function
-- [ ] Run tests: All embed tests passing
-- [ ] Verify embeds match Discord specification
+- [x] Create tests/utils/embedBuilder.test.js
+- [x] Write test: Color selection based on positive price change
+- [x] Write test: Color selection based on negative price change
+- [x] Write test: Color selection for neutral/zero change
+- [x] Write test: Embed structure validation
+- [x] Write test: All required fields present
+- [x] Write test: Partial data handling (missing AI summary)
+- [x] Write test: Footer formatting with timestamp
+- [x] Write test: Help embed structure
+- [x] Implement src/utils/embedBuilder.js
+- [x] Implement getEmbedColor function
+- [x] Implement buildStockEmbed function
+- [x] Implement buildHelpEmbed function
+- [x] Run tests: All embed tests passing
+- [x] Verify embeds match Discord specification
 
 ---
 
