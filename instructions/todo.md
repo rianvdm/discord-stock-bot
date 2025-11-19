@@ -48,53 +48,54 @@
 - [x] **Why?** This bot uses Interactions API (HTTP-based slash commands), not the Gateway (WebSocket). Interactions-based bots don't need gateway intents and work more efficiently.
 
 ### Step 7: Generate OAuth2 URL
-- [ ] Click "OAuth2" in the left sidebar, then "URL Generator"
-- [ ] Under "SCOPES", select:
+- [x] Click "OAuth2" in the left sidebar, then "URL Generator"
+- [x] Under "SCOPES", select:
   - ✅ `bot` - Adds the bot user to servers
   - ✅ `applications.commands` - Enables slash commands (REQUIRED)
-- [ ] Under "BOT PERMISSIONS", select these minimum permissions:
+- [x] Under "BOT PERMISSIONS", select these minimum permissions:
   - ✅ **Send Messages** - Required to respond to commands
   - ✅ **Embed Links** - Required for rich embed responses
   - ✅ **Use External Emojis** - For reactions (optional but recommended)
   - ✅ **Add Reactions** - For rate limit emoji indicator
   - ✅ **Read Message History** - May be needed for context (optional)
-- [ ] Note the permission integer displayed (e.g., `2147485696`)
-- [ ] Copy the generated OAuth2 URL at the bottom
-- [ ] Save/bookmark this URL for future use
+- [x] Note the permission integer displayed (e.g., `2147485696`)
+- [x] Copy the generated OAuth2 URL at the bottom
+- [x] Save/bookmark this URL for future use
+
 
 ### Step 8: Add Bot to Test Server
-- [ ] Paste the OAuth2 URL into your browser
-- [ ] Select a Discord server where you have "Manage Server" permission
+- [x] Paste the OAuth2 URL into your browser
+- [x] Select a Discord server where you have "Manage Server" permission
   - ⚠️ Use a TEST server, not a production server
   - Create a new test server if needed (recommended)
-- [ ] Review the requested permissions
-- [ ] Click "Authorize"
-- [ ] Complete the CAPTCHA if prompted
-- [ ] Verify success message appears
+- [x] Review the requested permissions
+- [x] Click "Authorize"
+- [x] Complete the CAPTCHA if prompted
+- [x] Verify success message appears
 
 ### Step 9: Verify Bot Installation
-- [ ] Open your Discord test server
-- [ ] Check the member list (right sidebar)
-- [ ] Verify your bot appears in the members list
-- [ ] Bot will show as OFFLINE (this is expected - it's not running yet)
-- [ ] Bot should have a "BOT" badge next to its name
+- [x] Open your Discord test server
+- [x] Check the member list (right sidebar)
+- [x] Verify your bot appears in the members list
+- [x] Bot will show as OFFLINE (this is expected - it's not running yet)
+- [x] Bot should have a "BOT" badge next to its name
 
 ### Step 10: Pre-Development Checklist
 Verify you have all required credentials saved:
-- [ ] `DISCORD_APP_ID` - Application ID from General Information
-- [ ] `DISCORD_PUBLIC_KEY` - Public Key from General Information  
-- [ ] `DISCORD_BOT_TOKEN` - Bot token from Bot page (starts with "MTk..." or similar)
-- [ ] OAuth2 invite URL saved/bookmarked
-- [ ] Bot successfully added to test Discord server
-- [ ] Bot appears in server member list (showing as offline)
+- [x] `DISCORD_APP_ID` - Application ID from General Information
+- [x] `DISCORD_PUBLIC_KEY` - Public Key from General Information  
+- [x] `DISCORD_BOT_TOKEN` - Bot token from Bot page (starts with "MTk..." or similar)
+- [x] OAuth2 invite URL saved/bookmarked
+- [x] Bot successfully added to test Discord server
+- [x] Bot appears in server member list (showing as offline)
 
 ### Step 11: Understanding Interactions Endpoint URL
-- [ ] **DO NOT SET THIS YET** - You'll configure this after deploying to Cloudflare Workers
-- [ ] The Interactions Endpoint URL tells Discord where to send slash command HTTP requests
-- [ ] For local development, you'll use a tool like `ngrok` to create a tunnel
-- [ ] For production, you'll use your Cloudflare Worker URL (e.g., `https://your-worker.workers.dev`)
-- [ ] Discord will send a PING request to verify the endpoint when you set it
-- [ ] Your worker must respond with PONG (type 1) to verify
+- [x] **DO NOT SET THIS YET** - You'll configure this after deploying to Cloudflare Workers
+- [x] The Interactions Endpoint URL tells Discord where to send slash command HTTP requests
+- [x] For local development, you'll use a tool like `ngrok` to create a tunnel
+- [x] For production, you'll use your Cloudflare Worker URL (e.g., `https://your-worker.workers.dev`)
+- [x] Discord will send a PING request to verify the endpoint when you set it
+- [x] Your worker must respond with PONG (type 1) to verify
 
 ### Important Notes
 - **Security**: Never commit `.dev.vars` or any file containing your bot token to git
