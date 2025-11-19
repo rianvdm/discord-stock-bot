@@ -153,21 +153,21 @@ Verify you have all required credentials saved:
 - [x] Verify error messages are user-friendly
 
 ### Step 4: Chart Generator
-- [ ] Create tests/utils/chartGenerator.test.js
-- [ ] Write test: Upward trend visualization
-- [ ] Write test: Downward trend visualization
-- [ ] Write test: Flat line visualization
-- [ ] Write test: Volatile price pattern
-- [ ] Write test: Single value handling
-- [ ] Write test: Two values handling
-- [ ] Write test: Empty array handling
-- [ ] Write test: Negative values
-- [ ] Write test: Small differences still show variation
-- [ ] Implement src/utils/chartGenerator.js
-- [ ] Implement generateSparkline function
-- [ ] Implement formatChartWithLabels function
-- [ ] Run tests: All chart tests passing
-- [ ] Visual verification: Check charts look correct for various patterns
+- [x] Create tests/utils/chartGenerator.test.js
+- [x] Write test: Upward trend visualization
+- [x] Write test: Downward trend visualization
+- [x] Write test: Flat line visualization
+- [x] Write test: Volatile price pattern
+- [x] Write test: Single value handling
+- [x] Write test: Two values handling
+- [x] Write test: Empty array handling
+- [x] Write test: Negative values
+- [x] Write test: Small differences still show variation
+- [x] Implement src/utils/chartGenerator.js
+- [x] Implement generateSparkline function
+- [x] Implement formatChartWithLabels function
+- [x] Run tests: All chart tests passing
+- [x] Visual verification: Check charts look correct for various patterns
 
 ### Step 5: Embed Builder
 - [ ] Create tests/utils/embedBuilder.test.js
