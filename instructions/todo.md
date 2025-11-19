@@ -2,38 +2,106 @@
 
 ## ✅ Phase 0: Discord Bot Setup
 
-### Discord Developer Portal Configuration
-- [ ] Go to https://discord.com/developers/applications
-- [ ] Create new application named "Stock Bot"
-- [ ] Navigate to Bot section
-- [ ] Add bot to application
-- [ ] Reset and copy bot token → Save as DISCORD_BOT_TOKEN
-- [ ] Disable all Privileged Gateway Intents (not needed)
-- [ ] Configure bot as private (uncheck "Public Bot") if desired
+> **Note:** This bot uses Discord's Interactions API (slash commands) hosted on Cloudflare Workers. It does NOT use Gateway/WebSocket connections, so gateway intents are not needed.
 
-### Get Application Credentials
-- [ ] Copy APPLICATION ID from General Information → Save as DISCORD_APP_ID
-- [ ] Copy PUBLIC KEY from General Information → Save as DISCORD_PUBLIC_KEY
-- [ ] Store all credentials securely (password manager or secure note)
+### Step 1: Create Discord Application
+- [x] Navigate to https://discord.com/developers/applications
+- [x] Click "New Application" button (top right)
+- [x] Enter application name: "Stock Bot" (or your preferred name)
+- [x] Read and accept Discord's Developer Terms of Service
+- [x] Click "Create"
+- [x] You'll be redirected to your application's General Information page
 
-### Configure Permissions
-- [ ] Set bot permissions: Send Messages, Embed Links, Add Reactions
-- [ ] Note the permissions integer for OAuth2
+### Step 2: Get Application Credentials
+- [x] On the General Information page, locate these values:
+  - **APPLICATION ID**: Copy this → Save as `DISCORD_APP_ID`
+    - Used for command registration and OAuth2 URLs
+  - **PUBLIC KEY**: Copy this → Save as `DISCORD_PUBLIC_KEY`
+    - Used to verify Discord's signature on incoming interactions
+- [x] Store both values securely (password manager or secure notes)
 
-### OAuth2 & Server Setup
-- [ ] Generate OAuth2 URL with bot + applications.commands scopes
-- [ ] Add bot permissions to OAuth2 URL
-- [ ] Copy and bookmark OAuth2 URL
-- [ ] Use OAuth2 URL to add bot to test Discord server
-- [ ] Verify bot appears in server member list (offline)
+### Step 3: Create Bot User
+- [x] Click "Bot" in the left sidebar
+- [x] Click "Add Bot" button
+- [x] Confirm by clicking "Yes, do it!"
+- [x] Your bot user is now created
 
-### Pre-Development Checklist
-- [ ] Have DISCORD_BOT_TOKEN saved
-- [ ] Have DISCORD_PUBLIC_KEY saved
-- [ ] Have DISCORD_APP_ID saved
-- [ ] Have OAuth2 URL bookmarked
-- [ ] Bot is in test server
-- [ ] Understand that Interactions Endpoint URL will be set after deployment
+### Step 4: Get Bot Token
+- [x] Under "TOKEN" section, click "Reset Token"
+- [x] Confirm the reset (you may need to enter 2FA code)
+- [x] **IMMEDIATELY COPY THE TOKEN** (it only shows once!)
+- [x] Save as `DISCORD_BOT_TOKEN` in your secure storage
+- [x] ⚠️ **CRITICAL**: Never commit this token to git or share it publicly
+
+### Step 5: Configure Bot Settings
+- [x] Still on the Bot page, configure these settings:
+  - **Public Bot**: Uncheck this if you want the bot private (recommended for testing)
+  - **Requires OAuth2 Code Grant**: Leave unchecked (not needed)
+  - **Bot Permissions**: (We'll set these in OAuth2, but note them here for reference)
+
+### Step 6: Gateway Intents (Important!)
+- [x] Scroll down to "Privileged Gateway Intents" section
+- [x] **LEAVE ALL INTENTS DISABLED** ✓
+  - ❌ PRESENCE INTENT - Not needed
+  - ❌ SERVER MEMBERS INTENT - Not needed  
+  - ❌ MESSAGE CONTENT INTENT - Not needed
+- [x] **Why?** This bot uses Interactions API (HTTP-based slash commands), not the Gateway (WebSocket). Interactions-based bots don't need gateway intents and work more efficiently.
+
+### Step 7: Generate OAuth2 URL
+- [ ] Click "OAuth2" in the left sidebar, then "URL Generator"
+- [ ] Under "SCOPES", select:
+  - ✅ `bot` - Adds the bot user to servers
+  - ✅ `applications.commands` - Enables slash commands (REQUIRED)
+- [ ] Under "BOT PERMISSIONS", select these minimum permissions:
+  - ✅ **Send Messages** - Required to respond to commands
+  - ✅ **Embed Links** - Required for rich embed responses
+  - ✅ **Use External Emojis** - For reactions (optional but recommended)
+  - ✅ **Add Reactions** - For rate limit emoji indicator
+  - ✅ **Read Message History** - May be needed for context (optional)
+- [ ] Note the permission integer displayed (e.g., `2147485696`)
+- [ ] Copy the generated OAuth2 URL at the bottom
+- [ ] Save/bookmark this URL for future use
+
+### Step 8: Add Bot to Test Server
+- [ ] Paste the OAuth2 URL into your browser
+- [ ] Select a Discord server where you have "Manage Server" permission
+  - ⚠️ Use a TEST server, not a production server
+  - Create a new test server if needed (recommended)
+- [ ] Review the requested permissions
+- [ ] Click "Authorize"
+- [ ] Complete the CAPTCHA if prompted
+- [ ] Verify success message appears
+
+### Step 9: Verify Bot Installation
+- [ ] Open your Discord test server
+- [ ] Check the member list (right sidebar)
+- [ ] Verify your bot appears in the members list
+- [ ] Bot will show as OFFLINE (this is expected - it's not running yet)
+- [ ] Bot should have a "BOT" badge next to its name
+
+### Step 10: Pre-Development Checklist
+Verify you have all required credentials saved:
+- [ ] `DISCORD_APP_ID` - Application ID from General Information
+- [ ] `DISCORD_PUBLIC_KEY` - Public Key from General Information  
+- [ ] `DISCORD_BOT_TOKEN` - Bot token from Bot page (starts with "MTk..." or similar)
+- [ ] OAuth2 invite URL saved/bookmarked
+- [ ] Bot successfully added to test Discord server
+- [ ] Bot appears in server member list (showing as offline)
+
+### Step 11: Understanding Interactions Endpoint URL
+- [ ] **DO NOT SET THIS YET** - You'll configure this after deploying to Cloudflare Workers
+- [ ] The Interactions Endpoint URL tells Discord where to send slash command HTTP requests
+- [ ] For local development, you'll use a tool like `ngrok` to create a tunnel
+- [ ] For production, you'll use your Cloudflare Worker URL (e.g., `https://your-worker.workers.dev`)
+- [ ] Discord will send a PING request to verify the endpoint when you set it
+- [ ] Your worker must respond with PONG (type 1) to verify
+
+### Important Notes
+- **Security**: Never commit `.dev.vars` or any file containing your bot token to git
+- **Token Rotation**: If your token is ever compromised, immediately regenerate it in the Bot page
+- **Rate Limits**: Discord has rate limits on API calls - the bot implements user-level rate limiting to help manage this
+- **Slash Commands**: This bot exclusively uses slash commands (no message content parsing)
+- **Verification**: If your bot reaches 100+ servers, Discord requires verification and may request additional information
 
 ---
 
