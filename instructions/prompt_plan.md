@@ -87,7 +87,7 @@ via the Interactions Endpoint URL once deployed.
 
 **Notes**: 
 - Keep your test server handy - you'll need it for testing slash commands in Step 20
-- You'll also need Finnhub and OpenAI API keys later (Step 20), but Discord setup is the priority now
+- You'll also need Massive.com and OpenAI API keys later (Step 20), but Discord setup is the priority now
 
 ---
 
@@ -253,19 +253,19 @@ Key format: ratelimit:{userId}, TTL: 60s
 
 ---
 
-## Step 8: Finnhub Service
+## Step 8: Massive.com Service
 
 ```
-Create Finnhub API client.
+Create Massive.com API client.
 
-Write tests in tests/services/finnhub.test.js:
+Write tests in tests/services/massive.test.js:
 - Successful quote and historical data fetch
 - 404 handling (invalid ticker with suggestions)
 - Timeout handling
 - Retry logic with exponential backoff
 - Response parsing
 
-Implement src/services/finnhub.js:
+Implement src/services/massive.js:
 export async function fetchQuote(ticker, apiKey) { ... }
 export async function fetchHistoricalData(ticker, days, apiKey) { ... }
 export function suggestTickers(ticker) { ... }
@@ -489,7 +489,7 @@ Script should handle both guild and global command registration.
 Add integration tests that verify the full flow.
 
 Create tests/integration/workflow.test.js:
-- Mock all external dependencies (Discord, Finnhub, OpenAI, KV)
+- Mock all external dependencies (Discord, Massive.com, OpenAI, KV)
 - Test complete /stock flow: validation → rate limit → fetch → cache → response
 - Test /help flow
 - Test error paths end-to-end
@@ -561,9 +561,9 @@ Complete testing and prepare for production deployment with Discord integration.
 3. Code review for security issues (no hardcoded secrets)
 
 **Get External API Keys**:
-4. Sign up for Finnhub: https://finnhub.io/register
-   - Free tier: 60 calls/minute
-   - Copy API key → Save as FINNHUB_API_KEY
+4. Sign up for Massive.com: https://massive.com/
+   - Free tier: 5 calls/minute
+   - Copy API key → Save as MASSIVE_API_KEY
 
 5. Get OpenAI API key: https://platform.openai.com/api-keys
    - Create new key → Save as OPENAI_API_KEY
@@ -728,7 +728,7 @@ Deployment complete! Bot should now be live and responding to commands in Discor
 1. **Discord Setup** (Step 0): Create bot, get credentials, configure permissions
 2. **Foundation** (Steps 1-5): Project setup, utilities, formatters
 3. **Infrastructure** (Steps 6-7): Caching, rate limiting  
-4. **External Services** (Steps 8-10): Finnhub, OpenAI, Discord
+4. **External Services** (Steps 8-10): Massive.com, OpenAI, Discord
 5. **Commands** (Steps 11-14): Help, Stock (incremental)
 6. **Integration** (Steps 15-17): Worker handler, registration, testing
 7. **Finalization** (Steps 18-20): Docs, optimization, deployment

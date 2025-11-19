@@ -1,9 +1,9 @@
-// ABOUTME: Finnhub API client for fetching stock quotes and historical data
+// ABOUTME: Massive.com API client for fetching stock quotes and historical data
 // ABOUTME: Includes timeout handling, retry logic, and ticker suggestion functionality
 
 import { CONFIG } from '../config.js';
 
-const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
+const MASSIVE_BASE_URL = 'https://api.massive.com';
 
 /**
  * Common ticker misspellings and their corrections
@@ -33,70 +33,85 @@ const POPULAR_TICKERS = [
 ];
 
 /**
- * Fetch current stock quote from Finnhub
+ * Fetch current stock quote from Massive.com
  * @param {string} ticker - Stock ticker symbol (e.g., 'AAPL')
- * @param {string} apiKey - Finnhub API key
+ * @param {string} apiKey - Massive.com API key
  * @returns {Promise<Object>} Quote data with current price, change, etc.
  * @throws {Error} If API request fails or data is invalid
  */
 export async function fetchQuote(ticker, apiKey) {
-  const url = `${FINNHUB_BASE_URL}/quote?symbol=${ticker}&token=${apiKey}`;
+  const url = `${MASSIVE_BASE_URL}/v2/aggs/ticker/${ticker}/prev?adjusted=true&apiKey=${apiKey}`;
   
   const data = await fetchWithRetry(url, {
     method: 'GET',
   });
 
   // Validate response data
-  if (!data || typeof data.c !== 'number' || typeof data.pc !== 'number') {
-    throw new Error('Invalid data received from Finnhub API');
+  if (!data || !data.results || data.results.length === 0) {
+    throw new Error('Invalid data received from Massive.com API');
   }
 
-  // Transform Finnhub response to our format
+  const result = data.results[0];
+  
+  // Validate required fields
+  if (typeof result.c !== 'number' || typeof result.o !== 'number') {
+    throw new Error('Invalid data received from Massive.com API');
+  }
+
+  // Transform Massive.com response to our format
+  // API returns previous day's data, so we use close as current price
   return {
-    currentPrice: data.c,
-    change: data.c - data.pc,
-    changePercent: ((data.c - data.pc) / data.pc) * 100,
-    high: data.h,
-    low: data.l,
-    open: data.o,
-    previousClose: data.pc,
-    timestamp: data.t
+    currentPrice: result.c,
+    change: result.c - result.o,
+    changePercent: ((result.c - result.o) / result.o) * 100,
+    high: result.h,
+    low: result.l,
+    open: result.o,
+    previousClose: result.o, // Open price is the previous close for this day
+    timestamp: Math.floor(result.t / 1000) // Convert from ms to seconds
   };
 }
 
 /**
- * Fetch historical stock data from Finnhub
+ * Fetch historical stock data from Massive.com
  * @param {string} ticker - Stock ticker symbol
  * @param {number} days - Number of days of historical data to fetch
- * @param {string} apiKey - Finnhub API key
+ * @param {string} apiKey - Massive.com API key
  * @returns {Promise<Object>} Historical data with closing prices and timestamps
  * @throws {Error} If API request fails or data is invalid
  */
 export async function fetchHistoricalData(ticker, days, apiKey) {
-  // Calculate timestamps for date range
-  const to = Math.floor(Date.now() / 1000); // Current time in seconds
-  const from = to - (days * 24 * 60 * 60); // N days ago in seconds
+  // Calculate date range in YYYY-MM-DD format
+  const toDate = new Date();
+  const fromDate = new Date();
+  fromDate.setDate(fromDate.getDate() - days);
+  
+  const to = toDate.toISOString().split('T')[0];
+  const from = fromDate.toISOString().split('T')[0];
 
-  const url = `${FINNHUB_BASE_URL}/stock/candle?symbol=${ticker}&resolution=D&from=${from}&to=${to}&token=${apiKey}`;
+  const url = `${MASSIVE_BASE_URL}/v2/aggs/ticker/${ticker}/range/1/day/${from}/${to}?adjusted=true&sort=asc&apiKey=${apiKey}`;
   
   const data = await fetchWithRetry(url, {
     method: 'GET',
   });
 
-  // Check for no_data status
-  if (data.s === 'no_data') {
+  // Validate response data
+  if (!data || !data.results || !Array.isArray(data.results)) {
     throw new Error('No historical data available for this ticker');
   }
 
-  // Validate response data
-  if (!data || !Array.isArray(data.c) || !Array.isArray(data.t)) {
-    throw new Error('Invalid historical data received from Finnhub API');
+  if (data.results.length === 0) {
+    throw new Error('No historical data available for this ticker');
   }
 
+  // Extract closing prices and timestamps
+  const closingPrices = data.results.map(r => r.c);
+  const timestamps = data.results.map(r => Math.floor(r.t / 1000)); // Convert from ms to seconds
+
   return {
-    closingPrices: data.c,
-    timestamps: data.t,
-    status: data.s
+    closingPrices,
+    timestamps,
+    status: 'ok'
   };
 }
 
@@ -181,7 +196,7 @@ async function fetchWithRetry(url, options = {}) {
     try {
       // Create abort controller for timeout
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), CONFIG.FINNHUB_TIMEOUT);
+      const timeoutId = setTimeout(() => controller.abort(), CONFIG.MASSIVE_TIMEOUT);
 
       const response = await fetch(url, {
         ...options,
@@ -195,7 +210,7 @@ async function fetchWithRetry(url, options = {}) {
         if (response.status === 404) {
           throw new Error('Stock ticker not found');
         }
-        throw new Error(`Finnhub API error: ${response.status} ${response.statusText}`);
+        throw new Error(`Massive.com API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -216,7 +231,7 @@ async function fetchWithRetry(url, options = {}) {
       if (attempt < maxRetries) {
         const delay = Math.pow(2, attempt) * 1000; // 1s, 2s, 4s, etc.
         await new Promise(resolve => setTimeout(resolve, delay));
-        console.warn(`[WARN] Finnhub request failed, retrying (attempt ${attempt + 2}/${maxRetries + 1})`, {
+        console.warn(`[WARN] Massive.com request failed, retrying (attempt ${attempt + 2}/${maxRetries + 1})`, {
           error: error.message,
           url
         });
@@ -225,7 +240,7 @@ async function fetchWithRetry(url, options = {}) {
   }
 
   // All retries exhausted
-  console.error('[ERROR] Finnhub request failed after all retries', {
+  console.error('[ERROR] Massive.com request failed after all retries', {
     error: lastError?.message,
     url
   });

@@ -14,7 +14,7 @@ export const CONFIG = {
   DEFAULT_PERIOD_DAYS: 7,      // Future: make configurable per command
   
   // API Timeouts (milliseconds)
-  FINNHUB_TIMEOUT: 10000,
+  MASSIVE_TIMEOUT: 10000,
   OPENAI_TIMEOUT: 15000,
   
   // Market Configuration

@@ -1,10 +1,10 @@
-// ABOUTME: Tests for Finnhub API client service
+// ABOUTME: Tests for Massive.com API client service
 // ABOUTME: Verifies quote fetching, historical data, error handling, and retry logic
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchQuote, fetchHistoricalData, suggestTickers } from '../../src/services/finnhub.js';
+import { fetchQuote, fetchHistoricalData, suggestTickers } from '../../src/services/massive.js';
 
-describe('Finnhub Service', () => {
+describe('Massive.com Service', () => {
   let originalFetch;
 
   beforeEach(() => {
@@ -23,12 +23,14 @@ describe('Finnhub Service', () => {
       vi.useRealTimers(); // Use real timers for this test
       
       const mockResponse = {
-        c: 175.43,  // current price
-        h: 176.12,  // high
-        l: 174.21,  // low
-        o: 174.50,  // open
-        pc: 171.33, // previous close
-        t: 1700000000 // timestamp
+        results: [{
+          c: 175.43,  // close (current price)
+          h: 176.12,  // high
+          l: 174.21,  // low
+          o: 174.50,  // open
+          v: 1000000, // volume
+          t: 1700000000000 // timestamp in milliseconds
+        }]
       };
 
       global.fetch = vi.fn().mockResolvedValue({
@@ -40,7 +42,7 @@ describe('Finnhub Service', () => {
       const result = await fetchQuote('AAPL', 'test_api_key');
 
       expect(global.fetch).toHaveBeenCalledWith(
-        'https://finnhub.io/api/v1/quote?symbol=AAPL&token=test_api_key',
+        'https://api.massive.com/v2/aggs/ticker/AAPL/prev?adjusted=true&apiKey=test_api_key',
         expect.objectContaining({
           method: 'GET',
           signal: expect.any(AbortSignal)
@@ -49,12 +51,12 @@ describe('Finnhub Service', () => {
 
       expect(result).toEqual({
         currentPrice: 175.43,
-        change: 175.43 - 171.33,
-        changePercent: ((175.43 - 171.33) / 171.33) * 100,
+        change: 175.43 - 174.50,
+        changePercent: ((175.43 - 174.50) / 174.50) * 100,
         high: 176.12,
         low: 174.21,
         open: 174.50,
-        previousClose: 171.33,
+        previousClose: 174.50,
         timestamp: 1700000000
       });
     });
@@ -101,12 +103,13 @@ describe('Finnhub Service', () => {
           ok: true,
           status: 200,
           json: async () => ({
-            c: 175.43,
-            h: 176.12,
-            l: 174.21,
-            o: 174.50,
-            pc: 171.33,
-            t: 1700000000
+            results: [{
+              c: 175.43,
+              h: 176.12,
+              l: 174.21,
+              o: 174.50,
+              t: 1700000000000
+            }]
           })
         });
       });
@@ -138,7 +141,7 @@ describe('Finnhub Service', () => {
       });
 
       await expect(fetchQuote('AAPL', 'test_api_key'))
-        .rejects.toThrow('Finnhub API error');
+        .rejects.toThrow('Massive.com API error');
     });
 
     it('should handle missing data in response', async () => {
@@ -160,13 +163,13 @@ describe('Finnhub Service', () => {
       vi.useRealTimers();
       
       const mockResponse = {
-        c: [171.33, 172.45, 173.12, 174.21, 175.43],
-        h: [172.10, 173.50, 174.00, 175.12, 176.12],
-        l: [170.50, 171.80, 172.45, 173.50, 174.21],
-        o: [171.00, 172.00, 173.00, 174.00, 175.00],
-        s: 'ok',
-        t: [1699920000, 1700006400, 1700092800, 1700179200, 1700265600],
-        v: [50000000, 48000000, 52000000, 49000000, 51000000]
+        results: [
+          { c: 171.33, h: 172.10, l: 170.50, o: 171.00, t: 1699920000000, v: 50000000 },
+          { c: 172.45, h: 173.50, l: 171.80, o: 172.00, t: 1700006400000, v: 48000000 },
+          { c: 173.12, h: 174.00, l: 172.45, o: 173.00, t: 1700092800000, v: 52000000 },
+          { c: 174.21, h: 175.12, l: 173.50, o: 174.00, t: 1700179200000, v: 49000000 },
+          { c: 175.43, h: 176.12, l: 174.21, o: 175.00, t: 1700265600000, v: 51000000 }
+        ]
       };
 
       global.fetch = vi.fn().mockResolvedValue({
@@ -177,14 +180,11 @@ describe('Finnhub Service', () => {
 
       const result = await fetchHistoricalData('AAPL', 7, 'test_api_key');
 
-      // Verify URL includes proper timestamps
+      // Verify URL includes proper date range
       const fetchCall = global.fetch.mock.calls[0][0];
-      expect(fetchCall).toContain('https://finnhub.io/api/v1/stock/candle');
-      expect(fetchCall).toContain('symbol=AAPL');
-      expect(fetchCall).toContain('resolution=D');
-      expect(fetchCall).toContain('from=');
-      expect(fetchCall).toContain('to=');
-      expect(fetchCall).toContain('token=test_api_key');
+      expect(fetchCall).toContain('https://api.massive.com/v2/aggs/ticker/AAPL/range/1/day/');
+      expect(fetchCall).toContain('adjusted=true');
+      expect(fetchCall).toContain('apiKey=test_api_key');
 
       expect(result).toEqual({
         closingPrices: [171.33, 172.45, 173.12, 174.21, 175.43],
@@ -200,7 +200,7 @@ describe('Finnhub Service', () => {
         ok: true,
         status: 200,
         json: async () => ({
-          s: 'no_data'
+          results: [] // Empty results array means no data
         })
       });
 
@@ -221,9 +221,10 @@ describe('Finnhub Service', () => {
           ok: true,
           status: 200,
           json: async () => ({
-            c: [171.33, 172.45],
-            s: 'ok',
-            t: [1699920000, 1700006400]
+            results: [
+              { c: 171.33, t: 1699920000000 },
+              { c: 172.45, t: 1700006400000 }
+            ]
           })
         });
       });
@@ -270,23 +271,30 @@ describe('Finnhub Service', () => {
         ok: true,
         status: 200,
         json: async () => ({
-          c: [100, 101, 102],
-          s: 'ok',
-          t: [1, 2, 3]
+          results: [
+            { c: 100, t: 1000000000 },
+            { c: 101, t: 2000000000 },
+            { c: 102, t: 3000000000 }
+          ]
         })
       });
 
       await fetchHistoricalData('AAPL', 30, 'test_api_key');
 
       const fetchCall = global.fetch.mock.calls[0][0];
-      const url = new URL(fetchCall);
-      const fromParam = parseInt(url.searchParams.get('from'));
-      const toParam = parseInt(url.searchParams.get('to'));
-
-      // Should be approximately 30 days apart (in seconds)
-      const daysDiff = (toParam - fromParam) / (60 * 60 * 24);
-      expect(daysDiff).toBeGreaterThanOrEqual(29);
-      expect(daysDiff).toBeLessThanOrEqual(31);
+      // URL format: /v2/aggs/ticker/AAPL/range/1/day/YYYY-MM-DD/YYYY-MM-DD
+      expect(fetchCall).toContain('/v2/aggs/ticker/AAPL/range/1/day/');
+      expect(fetchCall).toContain('adjusted=true');
+      
+      // Extract the dates from the URL path
+      const dateMatch = fetchCall.match(/\/range\/1\/day\/(\d{4}-\d{2}-\d{2})\/(\d{4}-\d{2}-\d{2})/);
+      if (dateMatch) {
+        const fromDate = new Date(dateMatch[1]);
+        const toDate = new Date(dateMatch[2]);
+        const daysDiff = (toDate - fromDate) / (1000 * 60 * 60 * 24);
+        expect(daysDiff).toBeGreaterThanOrEqual(29);
+        expect(daysDiff).toBeLessThanOrEqual(31);
+      }
     });
   });
 
@@ -344,12 +352,13 @@ describe('Finnhub Service', () => {
           ok: true,
           status: 200,
           json: async () => ({
-            c: 175.43,
-            h: 176.12,
-            l: 174.21,
-            o: 174.50,
-            pc: 171.33,
-            t: 1700000000
+            results: [{
+              c: 175.43,
+              h: 176.12,
+              l: 174.21,
+              o: 174.50,
+              t: 1700000000000
+            }]
           })
         });
       });

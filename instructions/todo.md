@@ -228,8 +228,8 @@ Verify you have all required credentials saved:
 
 ## ✅ Phase 3: External Services
 
-### Step 8: Finnhub Service
-- [x] Create tests/services/finnhub.test.js
+### Step 8: Massive.com Service
+- [x] Create tests/services/massive.test.js
 - [x] Write test: Successful quote fetch
 - [x] Write test: Successful historical data fetch
 - [x] Write test: 404 handling (invalid ticker)
@@ -239,14 +239,14 @@ Verify you have all required credentials saved:
 - [x] Write test: Response parsing for historical data
 - [x] Write test: Ticker suggestions for common typos
 - [x] Mock fetch API for tests
-- [x] Implement src/services/finnhub.js
+- [x] Implement src/services/massive.js
 - [x] Implement fetchQuote function
 - [x] Implement fetchHistoricalData function
 - [x] Implement suggestTickers function
 - [x] Add timeout using AbortController (10s)
 - [x] Add retry logic (1 retry with backoff)
-- [x] Run tests: All Finnhub tests passing
-- [x] Verify API endpoints are correct (/quote, /stock/candle)
+- [x] Run tests: All Massive.com tests passing
+- [x] Verify API endpoints are correct (/v2/aggs/ticker/{ticker}/prev, /v2/aggs/ticker/{ticker}/range)
 
 ### Step 9: OpenAI Service
 - [ ] Create tests/services/openai.test.js
@@ -387,7 +387,7 @@ Verify you have all required credentials saved:
 
 ### Step 17: Integration Testing
 - [ ] Create tests/integration/workflow.test.js
-- [ ] Mock all external dependencies (Discord, Finnhub, OpenAI, KV)
+- [ ] Mock all external dependencies (Discord, Massive.com, OpenAI, KV)
 - [ ] Write test: Complete /stock flow (validation → rate limit → fetch → cache → response)
 - [ ] Write test: /help flow end-to-end
 - [ ] Write test: Invalid ticker error path
@@ -428,7 +428,7 @@ Verify you have all required credentials saved:
 
 ### Step 19: Performance Optimization
 - [ ] Add request timing instrumentation
-- [ ] Log API response times for Finnhub
+- [ ] Log API response times for Massive.com
 - [ ] Log API response times for OpenAI
 - [ ] Log cache hit/miss metrics
 - [ ] Track end-to-end request duration
@@ -452,9 +452,9 @@ Verify you have all required credentials saved:
 - [ ] Verify .gitignore includes .dev.vars
 
 ### Get API Keys
-- [ ] Sign up for Finnhub: https://finnhub.io/register
-- [ ] Get Finnhub API key → Save as FINNHUB_API_KEY
-- [ ] Verify Finnhub free tier (60 calls/min)
+- [ ] Sign up for Massive.com: https://massive.com/
+- [ ] Get Massive.com API key → Save as MASSIVE_API_KEY
+- [ ] Verify Massive.com free tier (5 calls/min)
 - [ ] Get OpenAI API key: https://platform.openai.com/api-keys
 - [ ] Save OpenAI key → Save as OPENAI_API_KEY
 - [ ] Verify OpenAI billing is set up
@@ -593,7 +593,7 @@ Verify you have all required credentials saved:
 
 ### Post-Launch Monitoring (First Week)
 - [ ] Day 1: Check error rates and logs every few hours
-- [ ] Day 1: Monitor API usage (Finnhub, OpenAI)
+- [ ] Day 1: Monitor API usage (Massive.com, OpenAI)
 - [ ] Day 1: Verify costs are within expected range
 - [ ] Day 2-3: Check metrics twice daily
 - [ ] Day 4-7: Check metrics once daily
@@ -612,7 +612,7 @@ Verify you have all required credentials saved:
 - [ ] Consider additional commands (/compare, /watchlist)
 - [ ] Keep dependencies updated (monthly check)
 - [ ] Monitor Discord API changes
-- [ ] Monitor Finnhub API changes
+- [ ] Monitor Massive.com API changes
 - [ ] Monitor OpenAI API changes
 
 ---
@@ -631,7 +631,7 @@ Verify you have all required credentials saved:
 - [ ] Daily Cloudflare Workers requests (free: 100k/day)
 - [ ] Daily KV reads (free: 100k/day)
 - [ ] Daily KV writes (free: 1k/day)
-- [ ] Daily Finnhub API calls (free: 60/minute)
+- [ ] Daily Massive.com API calls (free: 5/minute)
 - [ ] Monthly OpenAI costs (estimate: $5-20/month small server)
 - [ ] Total monthly costs
 

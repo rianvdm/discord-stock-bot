@@ -39,7 +39,7 @@ Displays bot usage instructions, rate limits, and data sources.
 **Response includes:**
 - Available commands
 - Rate limit information
-- Data source attribution (Finnhub)
+- Data source attribution (Massive.com)
 - Example usage
 
 ### 2.2 Response Format
@@ -69,7 +69,7 @@ Displays bot usage instructions, rate limits, and data sources.
 │ Apple's Q4 earnings exceeded...     │
 │ [2-4 sentence AI summary]           │
 │ ──────────────────────────────────  │
-│ Data: Finnhub • 2:45 PM ET          │
+│ Data: Massive.com • 2:45 PM ET       │
 └─────────────────────────────────────┘
 ```
 
@@ -139,11 +139,11 @@ Displays bot usage instructions, rate limits, and data sources.
 └─────────────────────────────────────────────────────┘
          │                │                 │
          ↓                ↓                 ↓
-    ┌─────────┐    ┌──────────┐    ┌──────────────┐
-    │ Finnhub │    │ OpenAI   │    │ Cloudflare   │
-    │   API   │    │ gpt-5-   │    │      KV      │
-    │         │    │ search   │    │   Storage    │
-    └─────────┘    └──────────┘    └──────────────┘
+    ┌──────────┐    ┌──────────┐    ┌──────────────┐
+    │ Massive  │    │ OpenAI   │    │ Cloudflare   │
+    │   .com   │    │ gpt-5-   │    │      KV      │
+    │   API    │    │ search   │    │   Storage    │
+    └──────────┘    └──────────┘    └──────────────┘
 ```
 
 ### 3.3 Data Flow
@@ -165,11 +165,11 @@ Displays bot usage instructions, rate limits, and data sources.
 
 ## 4. External Services & APIs
 
-### 4.1 Stock Data: Finnhub
+### 4.1 Stock Data: Massive.com
 
-**API:** https://finnhub.io/
-**Free Tier:** 60 API calls/minute
-**Authentication:** API key in request headers
+**API:** https://massive.com/ (formerly Polygon.io)
+**Free Tier:** 5 API calls/minute
+**Authentication:** API key in request headers or query parameters
 
 **Endpoints Used:**
 
@@ -376,7 +376,7 @@ All user errors should be:
 console.log('[INFO] Stock lookup', { ticker, userId, cached });
 console.warn('[WARN] Cache miss', { key, reason });
 console.error('[ERROR] API failure', { 
-  service: 'Finnhub', 
+  service: 'Massive.com', 
   error: error.message,
   ticker,
   timestamp: new Date().toISOString()
@@ -414,7 +414,7 @@ console.error('[ERROR] API failure', {
 - AI summary still attempts to fetch latest news
 
 **Implementation:**
-- Finnhub API returns previous close when market is closed
+- Massive.com API returns previous close when market is closed
 - No special logic needed initially
 - Track `latestTradingDay` field from API response
 
@@ -461,7 +461,7 @@ const [priceData, historyData, cachedSummary] = await Promise.all([
 
 ### 9.3 API Rate Limits
 
-**Finnhub Free Tier:** 60 calls/minute
+**Massive.com Free Tier:** 5 calls/minute
 **Strategy:**
 - Cache aggressively
 - User rate limiting (1/min/user) naturally limits total requests
@@ -510,7 +510,7 @@ const [priceData, historyData, cachedSummary] = await Promise.all([
    - Logging calls made
 
 **Mock External Dependencies:**
-- Finnhub API responses (success, failure, timeout)
+- Massive.com API responses (success, failure, timeout)
 - OpenAI API responses
 - KV storage operations
 - Discord API interactions
@@ -634,7 +634,7 @@ discord-stock-bot/
 │   │   ├── stock.js             # /stock command handler
 │   │   └── help.js              # /help command handler
 │   ├── services/
-│   │   ├── finnhub.js           # Finnhub API client
+│   │   ├── massive.js           # Massive.com API client
 │   │   ├── openai.js            # OpenAI API client
 │   │   └── discord.js           # Discord API utilities
 │   ├── middleware/
@@ -739,7 +739,7 @@ discord-stock-bot/
    - Target: > 90% for AI summaries
 
 4. **API Usage**
-   - Stay within Finnhub free tier (60/min)
+   - Stay within Massive.com free tier (5/min)
    - Monitor OpenAI costs
    - Track cost per request
 
@@ -770,7 +770,7 @@ discord-stock-bot/
 
 ### 16.2 External Services
 
-- **Finnhub:** Stock market data
+- **Massive.com:** Stock market data
 - **OpenAI:** AI-powered news summaries
 - **Discord:** Bot platform
 - **Cloudflare Workers:** Hosting and compute
@@ -784,8 +784,8 @@ discord-stock-bot/
 - Free: 100,000 requests/day
 - KV: 100,000 reads/day, 1,000 writes/day
 
-**Finnhub:**
-- Free: 60 API calls/minute
+**Massive.com:**
+- Free: 5 API calls/minute
 
 **OpenAI:**
 - Pay per token (estimate $0.01-0.05 per request with gpt-5-search-api)
@@ -833,7 +833,7 @@ The project is complete when:
 
 **Phase 2: Core Functionality (6-8 hours)**
 - Command routing and parsing
-- Finnhub integration
+- Massive.com integration
 - Basic response formatting
 - Error handling
 
@@ -896,7 +896,7 @@ The project is complete when:
 
 ## Appendix B: Example API Responses
 
-### Finnhub Quote Response
+### Massive.com Quote Response (Previous Day Bar)
 ```json
 {
   "c": 175.43,
@@ -908,7 +908,7 @@ The project is complete when:
 }
 ```
 
-### Finnhub Candle Response
+### Massive.com Historical Data Response
 ```json
 {
   "c": [171.33, 172.45, 173.12, 174.21, 175.43],
