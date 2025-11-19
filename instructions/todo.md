@@ -229,24 +229,24 @@ Verify you have all required credentials saved:
 ## ✅ Phase 3: External Services
 
 ### Step 8: Finnhub Service
-- [ ] Create tests/services/finnhub.test.js
-- [ ] Write test: Successful quote fetch
-- [ ] Write test: Successful historical data fetch
-- [ ] Write test: 404 handling (invalid ticker)
-- [ ] Write test: Timeout handling
-- [ ] Write test: Retry logic with exponential backoff
-- [ ] Write test: Response parsing for quote
-- [ ] Write test: Response parsing for historical data
-- [ ] Write test: Ticker suggestions for common typos
-- [ ] Mock fetch API for tests
-- [ ] Implement src/services/finnhub.js
-- [ ] Implement fetchQuote function
-- [ ] Implement fetchHistoricalData function
-- [ ] Implement suggestTickers function
-- [ ] Add timeout using AbortController (10s)
-- [ ] Add retry logic (1 retry with backoff)
-- [ ] Run tests: All Finnhub tests passing
-- [ ] Verify API endpoints are correct (/quote, /stock/candle)
+- [x] Create tests/services/finnhub.test.js
+- [x] Write test: Successful quote fetch
+- [x] Write test: Successful historical data fetch
+- [x] Write test: 404 handling (invalid ticker)
+- [x] Write test: Timeout handling
+- [x] Write test: Retry logic with exponential backoff
+- [x] Write test: Response parsing for quote
+- [x] Write test: Response parsing for historical data
+- [x] Write test: Ticker suggestions for common typos
+- [x] Mock fetch API for tests
+- [x] Implement src/services/finnhub.js
+- [x] Implement fetchQuote function
+- [x] Implement fetchHistoricalData function
+- [x] Implement suggestTickers function
+- [x] Add timeout using AbortController (10s)
+- [x] Add retry logic (1 retry with backoff)
+- [x] Run tests: All Finnhub tests passing
+- [x] Verify API endpoints are correct (/quote, /stock/candle)
 
 ### Step 9: OpenAI Service
 - [ ] Create tests/services/openai.test.js
