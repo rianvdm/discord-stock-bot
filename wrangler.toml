@@ -1,16 +1,98 @@
+# Cloudflare Workers Configuration for Discord Stock Bot
+# This file defines the Worker's runtime configuration, KV namespaces, and bindings
+
+# Worker name - this becomes the subdomain: <name>.<account>.workers.dev
 name = "discord-stock-bot"
+
+# Main entry point for the Worker
 main = "src/index.js"
+
+# Compatibility date - locks in behavior for Workers platform features
+# This ensures consistent behavior even as the Workers runtime evolves
 compatibility_date = "2024-01-01"
 
-# KV Namespaces
+# ============================================================================
+# KV Namespaces - Key-Value storage for caching and rate limiting
+# ============================================================================
+
+# Rate Limiting Namespace
+# Stores user request timestamps to enforce 1 query per minute per user
+# Keys: ratelimit:{userId}
+# Values: Unix timestamp (milliseconds)
+# TTL: 60 seconds (auto-expiry)
 [[kv_namespaces]]
 binding = "RATE_LIMITS"
 id = "f1955f749faf4ef29dd963e0f317fc80"
 
+# Cache Namespace
+# Stores stock data, historical prices, and AI summaries
+# Keys:
+#   - stock:price:{ticker} (TTL: 5 min)
+#   - stock:history:{ticker}:{days} (TTL: 1 hour)
+#   - stock:summary:{ticker} (TTL: 8 hours)
+# Values: JSON strings
 [[kv_namespaces]]
 binding = "CACHE"
 id = "297358b6c2eb43dd9362a22d4e369d9a"
 
-# Environment variables (non-secret)
-# Secrets (DISCORD_BOT_TOKEN, DISCORD_PUBLIC_KEY, FINNHUB_API_KEY, OPENAI_API_KEY) 
-# should be set via: wrangler secret put <SECRET_NAME>
+# ============================================================================
+# Secrets - Environment Variables (DO NOT COMMIT SECRETS!)
+# ============================================================================
+# Set secrets using Wrangler CLI:
+#
+#   wrangler secret put DISCORD_BOT_TOKEN
+#   wrangler secret put DISCORD_PUBLIC_KEY
+#   wrangler secret put MASSIVE_API_KEY
+#   wrangler secret put OPENAI_API_KEY
+#
+# Required Secrets:
+#   - DISCORD_BOT_TOKEN: Discord bot authentication token
+#   - DISCORD_PUBLIC_KEY: Discord application public key (for signature verification)
+#   - MASSIVE_API_KEY: Massive.com (Polygon.io) API key for stock data
+#   - OPENAI_API_KEY: OpenAI API key for AI-powered news summaries
+#
+# Optional Secrets:
+#   - DEV_MODE: Set to "true" in local development to skip signature verification
+#
+# For local development, create a .dev.vars file (never commit this file!):
+#   DISCORD_BOT_TOKEN=your_token
+#   DISCORD_PUBLIC_KEY=your_key
+#   MASSIVE_API_KEY=your_key
+#   OPENAI_API_KEY=your_key
+#   DEV_MODE=true
+
+# ============================================================================
+# Additional Configuration Options (currently not used)
+# ============================================================================
+#
+# [vars]
+# Non-secret environment variables can be defined here
+# Example: ENVIRONMENT = "production"
+#
+# [build]
+# Custom build configuration (if needed)
+#
+# [site]
+# Static asset serving configuration (not applicable for this bot)
+#
+# [[services]]
+# Service bindings to other Workers (for microservices architecture)
+
+# ============================================================================
+# Deployment Notes
+# ============================================================================
+# 1. Create KV namespaces first:
+#    wrangler kv:namespace create RATE_LIMITS
+#    wrangler kv:namespace create CACHE
+#
+# 2. Update the 'id' values above with the generated namespace IDs
+#
+# 3. Set all required secrets (see above)
+#
+# 4. Deploy: npm run deploy
+#
+# 5. Configure Discord Interactions Endpoint:
+#    https://discord.com/developers/applications
+#    Set Interactions Endpoint URL to: https://<name>.<account>.workers.dev
+#
+# For detailed deployment instructions, see: DEPLOYMENT_GUIDE.md
