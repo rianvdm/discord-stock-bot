@@ -113,9 +113,8 @@ Important guidelines:
 - Use web search to find the latest, most current information
 - Be factual about numbers and events
 - Provide cautious, balanced interpretation
-- Note: Stock price data shown is from the previous trading day's close, not real-time
 - Do not make buy/sell recommendations
 - CRITICAL: Keep response under 800 characters (about 70-90 words). Be extremely concise.
 - CRITICAL: Provide a plain text summary without any markdown, headers, numbering, bullet points, or special formatting (no bold, italics, underscores, or other text decorations).
-- CRITICAL: no citations, URLs, or links.`;
+- CRITICAL: no preamble or follow-ups, citations, URLs, or links.`;
 }
