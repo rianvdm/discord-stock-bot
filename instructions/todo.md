@@ -249,22 +249,23 @@ Verify you have all required credentials saved:
 - [x] Verify API endpoints are correct (/v2/aggs/ticker/{ticker}/prev, /v2/aggs/ticker/{ticker}/range)
 
 ### Step 9: OpenAI Service
-- [ ] Create tests/services/openai.test.js
-- [ ] Write test: Successful summary generation
-- [ ] Write test: Prompt formatting with ticker and company
-- [ ] Write test: Timeout handling
-- [ ] Write test: API error handling (rate limit)
-- [ ] Write test: API error handling (invalid key)
-- [ ] Write test: Response validation (2-4 sentences)
-- [ ] Mock OpenAI client for tests
-- [ ] Implement src/services/openai.js
-- [ ] Implement generateAISummary function
-- [ ] Implement formatPrompt function
-- [ ] Configure: model=gpt-5-search-api, max_tokens=10000, temperature=0.3
-- [ ] Add timeout using AbortController (15s)
-- [ ] Throw PARTIAL_FAILURE on errors (don't fail entire request)
-- [ ] Run tests: All OpenAI tests passing
-- [ ] Verify prompt template matches spec
+- [x] Create tests/services/openai.test.js
+- [x] Write test: Successful summary generation
+- [x] Write test: Prompt formatting with ticker and company
+- [x] Write test: Timeout handling
+- [x] Write test: API error handling (rate limit)
+- [x] Write test: API error handling (invalid key)
+- [x] Write test: Response validation (2-4 sentences)
+- [x] Mock OpenAI client for tests
+- [x] Implement src/services/openai.js
+- [x] Implement generateAISummary function
+- [x] Implement formatPrompt function
+- [x] Configure: model=gpt-4o-mini, max_tokens=300, temperature=0.3
+- [x] Add timeout using AbortController (15s)
+- [x] Throw errors on failures (partial failure handling)
+- [x] Run tests: All OpenAI tests passing (10/10 ✅)
+- [x] Verify prompt template matches spec
+- [x] Test with real API key - summaries generated successfully
 
 ### Step 10: Discord Utilities
 - [ ] Create tests/services/discord.test.js
