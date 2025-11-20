@@ -89,7 +89,7 @@ describe('buildStockEmbed', () => {
   it('should include current price field with change', () => {
     const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
 
-    const priceField = embed.fields.find(f => f.name.includes('Current Price') || f.name.includes('Price'));
+    const priceField = embed.fields.find(f => f.name.includes('Previous Close'));
     expect(priceField).toBeDefined();
     expect(priceField.value).toContain('$175.43');
     expect(priceField.value).toContain('2.30%'); // Formatted with 2 decimal places
@@ -140,7 +140,7 @@ describe('buildStockEmbed', () => {
     const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
 
     expect(embed.footer).toBeDefined();
-    expect(embed.footer.text).toContain('Finnhub');
+    expect(embed.footer.text).toContain('Massive.com');
   });
 
   it('should include timestamp', () => {
@@ -153,7 +153,7 @@ describe('buildStockEmbed', () => {
   it('should format positive change with + sign', () => {
     const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
 
-    const priceField = embed.fields.find(f => f.name.includes('Current Price') || f.name.includes('Price'));
+    const priceField = embed.fields.find(f => f.name.includes('Previous Close'));
     expect(priceField.value).toMatch(/\+/);
   });
 
@@ -165,7 +165,7 @@ describe('buildStockEmbed', () => {
     };
     const embed = buildStockEmbed(negativeData, mockChart, mockAiSummary, true);
 
-    const priceField = embed.fields.find(f => f.name.includes('Current Price') || f.name.includes('Price'));
+    const priceField = embed.fields.find(f => f.name.includes('Previous Close'));
     expect(priceField.value).toMatch(/-/);
   });
 });
@@ -204,7 +204,7 @@ describe('buildHelpEmbed', () => {
     const embed = buildHelpEmbed();
 
     const text = JSON.stringify(embed);
-    expect(text).toContain('Finnhub');
+    expect(text).toContain('Massive.com');
   });
 
   it('should have neutral color', () => {

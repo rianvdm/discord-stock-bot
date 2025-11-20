@@ -11,7 +11,7 @@ describe('OpenAI Service', () => {
       
       expect(prompt).toContain('AAPL');
       expect(prompt).toContain('Apple Inc.');
-      expect(prompt).toContain('2-4 sentence');
+      expect(prompt).toContain('up to 150 words');
       expect(prompt).toContain('previous trading day');
     });
 
@@ -68,7 +68,7 @@ describe('OpenAI Service', () => {
               content: expect.stringContaining('Apple Inc.')
             })
           ]),
-          max_completion_tokens: 500,
+          max_completion_tokens: 3000,
           web_search_options: {}
         })
       );
