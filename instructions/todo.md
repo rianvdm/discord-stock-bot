@@ -388,18 +388,18 @@ Verify you have all required credentials saved:
 - [x] Document usage in script comments
 
 ### Step 17: Integration Testing
-- [ ] Create tests/integration/workflow.test.js
-- [ ] Mock all external dependencies (Discord, Massive.com, OpenAI, KV)
-- [ ] Write test: Complete /stock flow (validation → rate limit → fetch → cache → response)
-- [ ] Write test: /help flow end-to-end
-- [ ] Write test: Invalid ticker error path
-- [ ] Write test: Rate limit error path
-- [ ] Write test: API failure error path
-- [ ] Write test: Cache hit scenario
-- [ ] Write test: Partial failure scenario (AI summary fails)
-- [ ] Run all integration tests
-- [ ] Verify all components work together
-- [ ] Check for any race conditions or timing issues
+- [x] Create tests/integration/workflow.test.js
+- [x] Mock all external dependencies (Discord, Massive.com, OpenAI, KV)
+- [x] Write test: Complete /stock flow (validation → rate limit → fetch → cache → response)
+- [x] Write test: /help flow end-to-end
+- [x] Write test: Invalid ticker error path
+- [x] Write test: Rate limit error path
+- [x] Write test: API failure error path
+- [x] Write test: Cache hit scenario
+- [x] Write test: Partial failure scenario (AI summary fails)
+- [x] Run all integration tests (11 tests passing ✅)
+- [x] Verify all components work together
+- [x] Check for any race conditions or timing issues
 
 ---
 
@@ -568,7 +568,7 @@ Verify you have all required credentials saved:
 - [x] Invalid tickers show helpful error messages (implemented)
 - [x] All errors handled gracefully (no crashes)
 - [x] Unit tests all passing (278 tests ✅)
-- [ ] Integration tests all passing (placeholder tests exist)
+- [x] Integration tests all passing (11 integration tests ✅)
 - [x] Documentation complete (DEPLOYMENT_GUIDE.md created, MANUAL_TESTING.md created)
 - [x] Code follows consistent style
 - [x] Logging captures all important events
