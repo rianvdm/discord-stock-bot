@@ -78,8 +78,8 @@ export default {
 
         if (!commandName) {
           throw new BotError(
-            'Command name missing from interaction',
-            ErrorTypes.UNKNOWN_ERROR
+            ErrorTypes.UNKNOWN,
+            'Command name missing from interaction'
           );
         }
 
@@ -122,8 +122,8 @@ export default {
                   const errorResponse = error instanceof BotError 
                     ? formatErrorResponse(error)
                     : formatErrorResponse(new BotError(
-                        'An unexpected error occurred. Please try again later.',
-                        ErrorTypes.UNKNOWN_ERROR
+                        ErrorTypes.UNKNOWN,
+                        'An unexpected error occurred. Please try again later.'
                       ));
                   
                   await sendFollowupMessage(
@@ -148,8 +148,8 @@ export default {
           default:
             console.warn('[WARN] Unknown command', { commandName });
             throw new BotError(
-              `Unknown command: ${commandName}`,
-              ErrorTypes.UNKNOWN_ERROR
+              ErrorTypes.UNKNOWN,
+              `Unknown command: ${commandName}`
             );
         }
 
@@ -162,8 +162,8 @@ export default {
       // Handle other interaction types (not supported)
       console.warn('[WARN] Unsupported interaction type', { type: interaction.type });
       throw new BotError(
-        'Unsupported interaction type',
-        ErrorTypes.UNKNOWN_ERROR
+        ErrorTypes.UNKNOWN,
+        'Unsupported interaction type'
       );
 
     } catch (error) {
@@ -177,8 +177,8 @@ export default {
       const errorResponse = error instanceof BotError 
         ? formatErrorResponse(error)
         : formatErrorResponse(new BotError(
-            'An unexpected error occurred. Please try again later.',
-            ErrorTypes.UNKNOWN_ERROR
+            ErrorTypes.UNKNOWN,
+            'An unexpected error occurred. Please try again later.'
           ));
 
       return new Response(JSON.stringify(errorResponse), {
