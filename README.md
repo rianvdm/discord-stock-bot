@@ -2,6 +2,8 @@
 
 A powerful Discord bot that provides real-time stock information, 7-day price trends, and AI-powered news summaries through slash commands. Built on Cloudflare Workers for global edge deployment.
 
+[![Add to Discord](https://img.shields.io/badge/Add%20to-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1440825435612254280&permissions=346176&integration_type=0&scope=bot+applications.commands)
+
 [![Tests](https://img.shields.io/badge/tests-280%20passing-brightgreen)]()
 [![Cloudflare Workers](https://img.shields.io/badge/platform-Cloudflare%20Workers-orange)]()
 [![Discord.js](https://img.shields.io/badge/discord-slash%20commands-blue)]()
