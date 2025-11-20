@@ -333,46 +333,46 @@ Verify you have all required credentials saved:
 - [x] Verify parallel operations are actually parallel
 
 ### Step 14: Stock Command - Response Building
-- [ ] Add test: Full response with all data
-- [ ] Add test: Response with missing AI summary
-- [ ] Add test: Chart generation and labeling
-- [ ] Add test: Color coding based on positive change
-- [ ] Add test: Color coding based on negative change
-- [ ] Add test: Market hours vs. closed handling
-- [ ] Complete stock.js with buildStockResponse function
-- [ ] Generate chart with labels
-- [ ] Determine embed color based on price change
-- [ ] Build complete embed with all data
-- [ ] Handle missing AI summary gracefully
-- [ ] Return formatted Discord response
-- [ ] Run tests: All response building tests passing
-- [ ] Integration test: Full /stock command flow works
+- [x] Add test: Full response with all data
+- [x] Add test: Response with missing AI summary
+- [x] Add test: Chart generation and labeling
+- [x] Add test: Color coding based on positive change
+- [x] Add test: Color coding based on negative change
+- [x] Add test: Market hours vs. closed handling
+- [x] Complete stock.js with buildStockResponse function
+- [x] Generate chart with labels
+- [x] Determine embed color based on price change
+- [x] Build complete embed with all data
+- [x] Handle missing AI summary gracefully
+- [x] Return formatted Discord response
+- [x] Run tests: All response building tests passing (30/30 ✅)
+- [x] Integration test: Full /stock command flow works
 
 ---
 
 ## ✅ Phase 5: Integration
 
 ### Step 15: Main Worker Handler
-- [ ] Create tests/index.test.js
-- [ ] Write test: Discord signature verification success
-- [ ] Write test: Discord signature verification failure
-- [ ] Write test: PING (type 1) returns PONG
-- [ ] Write test: /stock command routing
-- [ ] Write test: /help command routing
-- [ ] Write test: Unknown command handling
-- [ ] Write test: Error handling and logging
-- [ ] Write test: Unauthorized requests rejected
-- [ ] Implement src/index.js
-- [ ] Verify Discord request signature
-- [ ] Parse request body as JSON
-- [ ] Handle PING interaction (type 1) → return PONG
-- [ ] Route to handleStockCommand for /stock
-- [ ] Route to handleHelpCommand for /help
-- [ ] Handle unknown commands
-- [ ] Wrap all in try-catch with error logging
-- [ ] Return proper HTTP responses
-- [ ] Run tests: All main handler tests passing
-- [ ] Integration test: Worker handles all interaction types
+- [x] Create tests/index.test.js
+- [x] Write test: Discord signature verification success
+- [x] Write test: Discord signature verification failure
+- [x] Write test: PING (type 1) returns PONG
+- [x] Write test: /stock command routing
+- [x] Write test: /help command routing
+- [x] Write test: Unknown command handling
+- [x] Write test: Error handling and logging
+- [x] Write test: Unauthorized requests rejected
+- [x] Implement src/index.js
+- [x] Verify Discord request signature
+- [x] Parse request body as JSON
+- [x] Handle PING interaction (type 1) → return PONG
+- [x] Route to handleStockCommand for /stock
+- [x] Route to handleHelpCommand for /help
+- [x] Handle unknown commands
+- [x] Wrap all in try-catch with error logging
+- [x] Return proper HTTP responses
+- [x] Run tests: All main handler tests passing (31/31 ✅)
+- [x] Integration test: Worker handles all interaction types
 
 ### Step 16: Command Registration Script
 - [ ] Install additional packages if needed (@discordjs/rest, discord-api-types)

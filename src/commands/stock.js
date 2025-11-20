@@ -1,13 +1,15 @@
 // ABOUTME: Handler for /stock command that provides stock price, trend, and AI summary
 // ABOUTME: Validates ticker, enforces rate limiting, and returns rich Discord embed response
 
-import { parseSlashCommand } from '../services/discord.js';
+import { parseSlashCommand, createEmbedResponse } from '../services/discord.js';
 import { validateTicker } from '../utils/validator.js';
 import { enforceRateLimit } from '../middleware/rateLimit.js';
 import { BotError, ErrorTypes, formatErrorResponse, logError } from '../utils/errorHandler.js';
 import { getCached, setCached } from '../middleware/cache.js';
 import { fetchQuote, fetchHistoricalData, suggestTickers } from '../services/massive.js';
 import { generateAISummary } from '../services/openai.js';
+import { formatChartWithLabels } from '../utils/chartGenerator.js';
+import { buildStockEmbed } from '../utils/embedBuilder.js';
 import { CONFIG } from '../config.js';
 
 /**
@@ -73,13 +75,12 @@ export async function handleStockCommand(interaction, env) {
       hasSummary: !!stockData.summary 
     });
 
-    // 5. TODO (Step 14): Build and return response
-    //    - Generate chart from historical data
-    //    - Build rich embed with color coding
-    //    - Return formatted Discord response
+    // 5. Build and return response
+    const response = buildStockResponse(stockData);
 
-    // Placeholder for Step 14 (response building)
-    throw new Error('Stock response building not yet implemented (Step 14)');
+    console.log('[INFO] Stock command completed successfully', { ticker, userId });
+    
+    return response;
     
   } catch (error) {
     // Handle unexpected errors
@@ -261,4 +262,37 @@ async function fetchStockData(ticker, env) {
       { ticker, originalError: error.message }
     );
   }
+}
+
+/**
+ * Build the final stock response with embed
+ * @param {Object} stockData - Complete stock data including price, history, and summary
+ * @returns {Object} Discord interaction response with embed
+ */
+function buildStockResponse(stockData) {
+  const { price, history, summary } = stockData;
+
+  // Generate chart from historical closing prices
+  const chart = formatChartWithLabels(history.closingPrices);
+
+  // Determine if market is open (for now, always show as closed since we use previous close)
+  // Future enhancement: implement actual market hours detection
+  const marketOpen = false;
+
+  // Build the stock embed with all data
+  const embed = buildStockEmbed(
+    {
+      ticker: price.ticker,
+      companyName: price.companyName,
+      currentPrice: price.currentPrice,
+      changePercent: price.changePercent,
+      changeAmount: price.changeAmount
+    },
+    chart,
+    summary, // Can be null if AI summary failed
+    marketOpen
+  );
+
+  // Return as non-ephemeral embed response (visible to everyone)
+  return createEmbedResponse(embed, false);
 }

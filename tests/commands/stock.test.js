@@ -711,4 +711,350 @@ describe('Stock Command - Structure', () => {
       }
     });
   });
+
+  describe('Response Building (Step 14)', () => {
+    beforeEach(() => {
+      // Reset mocks
+      mockKV.get.mockReset();
+      mockKV.put.mockReset();
+    });
+
+    it('should return full response with all data (price, history, AI summary)', async () => {
+      const mockInteraction = {
+        id: '123456789',
+        type: 2,
+        data: {
+          name: 'stock',
+          options: [
+            { name: 'ticker', value: 'AAPL' }
+          ]
+        },
+        user: { id: 'user_full_response', username: 'testuser' }
+      };
+
+      // Mock cached data with complete information
+      const cachedPrice = {
+        ticker: 'AAPL',
+        companyName: 'Apple Inc.',
+        currentPrice: 175.43,
+        changeAmount: 4.10,
+        changePercent: 2.39,
+        timestamp: Date.now() / 1000
+      };
+
+      const cachedHistory = {
+        closingPrices: [171.33, 172.45, 173.12, 174.21, 175.43],
+        timestamps: [1, 2, 3, 4, 5]
+      };
+
+      const cachedSummary = 'Apple reported strong Q4 earnings that exceeded analyst expectations. The company announced new product launches for next quarter.';
+
+      mockKV.get.mockImplementation((key) => {
+        if (key === 'ratelimit:user_full_response') {
+          return Promise.resolve(null);
+        }
+        if (key === 'stock:price:AAPL') {
+          return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key.startsWith('stock:history:AAPL')) {
+          return Promise.resolve(JSON.stringify(cachedHistory));
+        }
+        if (key === 'stock:summary:AAPL') {
+          return Promise.resolve(JSON.stringify(cachedSummary));
+        }
+        return Promise.resolve(null);
+      });
+
+      mockKV.put.mockResolvedValue(undefined);
+
+      const response = await handleStockCommand(mockInteraction, mockEnv);
+
+      // Verify response structure
+      expect(response).toBeDefined();
+      expect(response.type).toBe(InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE);
+      expect(response.data).toBeDefined();
+      expect(response.data.embeds).toBeDefined();
+      expect(response.data.embeds.length).toBe(1);
+
+      const embed = response.data.embeds[0];
+      expect(embed.title).toContain('AAPL');
+      expect(embed.title).toContain('Apple Inc.');
+      expect(embed.fields).toBeDefined();
+      expect(embed.fields.length).toBeGreaterThan(0);
+
+      // Should not be ephemeral (public response)
+      expect(response.data.flags).toBeUndefined();
+    });
+
+    it('should return response with missing AI summary', async () => {
+      const mockInteraction = {
+        id: '123456789',
+        type: 2,
+        data: {
+          name: 'stock',
+          options: [
+            { name: 'ticker', value: 'NET' }
+          ]
+        },
+        user: { id: 'user_no_ai', username: 'testuser' }
+      };
+
+      const cachedPrice = {
+        ticker: 'NET',
+        companyName: 'Cloudflare Inc.',
+        currentPrice: 78.50,
+        changeAmount: -1.25,
+        changePercent: -1.57,
+        timestamp: Date.now() / 1000
+      };
+
+      const cachedHistory = {
+        closingPrices: [79.00, 78.75, 79.25, 79.50, 78.50],
+        timestamps: [1, 2, 3, 4, 5]
+      };
+
+      mockKV.get.mockImplementation((key) => {
+        if (key === 'ratelimit:user_no_ai') {
+          return Promise.resolve(null);
+        }
+        if (key === 'stock:price:NET') {
+          return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key.startsWith('stock:history:NET')) {
+          return Promise.resolve(JSON.stringify(cachedHistory));
+        }
+        // No AI summary cached
+        return Promise.resolve(null);
+      });
+
+      mockKV.put.mockResolvedValue(undefined);
+
+      const response = await handleStockCommand(mockInteraction, mockEnv);
+
+      expect(response).toBeDefined();
+      expect(response.data.embeds).toBeDefined();
+      expect(response.data.embeds.length).toBe(1);
+
+      const embed = response.data.embeds[0];
+      
+      // Should still have stock data
+      expect(embed.title).toContain('NET');
+      
+      // Check that embed indicates AI summary is unavailable
+      const aiField = embed.fields.find(f => f.name.includes('News'));
+      expect(aiField).toBeDefined();
+      expect(aiField.value).toContain('unavailable');
+    });
+
+    it('should generate chart and include labels', async () => {
+      const mockInteraction = {
+        id: '123456789',
+        type: 2,
+        data: {
+          name: 'stock',
+          options: [
+            { name: 'ticker', value: 'TSLA' }
+          ]
+        },
+        user: { id: 'user_chart', username: 'testuser' }
+      };
+
+      const cachedPrice = {
+        ticker: 'TSLA',
+        companyName: 'Tesla Inc.',
+        currentPrice: 240.00,
+        changeAmount: 5.00,
+        changePercent: 2.13,
+        timestamp: Date.now() / 1000
+      };
+
+      const cachedHistory = {
+        closingPrices: [220.00, 225.00, 230.00, 235.00, 240.00],
+        timestamps: [1, 2, 3, 4, 5]
+      };
+
+      const cachedSummary = 'Tesla stock rises on strong delivery numbers.';
+
+      mockKV.get.mockImplementation((key) => {
+        if (key === 'ratelimit:user_chart') {
+          return Promise.resolve(null);
+        }
+        if (key === 'stock:price:TSLA') {
+          return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key.startsWith('stock:history:TSLA')) {
+          return Promise.resolve(JSON.stringify(cachedHistory));
+        }
+        if (key === 'stock:summary:TSLA') {
+          return Promise.resolve(JSON.stringify(cachedSummary));
+        }
+        return Promise.resolve(null);
+      });
+
+      mockKV.put.mockResolvedValue(undefined);
+
+      const response = await handleStockCommand(mockInteraction, mockEnv);
+
+      const embed = response.data.embeds[0];
+      
+      // Find the chart field
+      const chartField = embed.fields.find(f => f.name.includes('Trend'));
+      expect(chartField).toBeDefined();
+      expect(chartField.value).toContain('$220.00');
+      expect(chartField.value).toContain('$240.00');
+      expect(chartField.value).toContain('→');
+    });
+
+    it('should use green color for positive price change', async () => {
+      const mockInteraction = {
+        id: '123456789',
+        type: 2,
+        data: {
+          name: 'stock',
+          options: [
+            { name: 'ticker', value: 'MSFT' }
+          ]
+        },
+        user: { id: 'user_positive', username: 'testuser' }
+      };
+
+      const cachedPrice = {
+        ticker: 'MSFT',
+        companyName: 'Microsoft Corp.',
+        currentPrice: 380.00,
+        changeAmount: 10.50,
+        changePercent: 2.84,
+        timestamp: Date.now() / 1000
+      };
+
+      const cachedHistory = {
+        closingPrices: [370.00, 372.00, 375.00, 377.50, 380.00],
+        timestamps: [1, 2, 3, 4, 5]
+      };
+
+      mockKV.get.mockImplementation((key) => {
+        if (key === 'ratelimit:user_positive') {
+          return Promise.resolve(null);
+        }
+        if (key === 'stock:price:MSFT') {
+          return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key.startsWith('stock:history:MSFT')) {
+          return Promise.resolve(JSON.stringify(cachedHistory));
+        }
+        return Promise.resolve(null);
+      });
+
+      mockKV.put.mockResolvedValue(undefined);
+
+      const response = await handleStockCommand(mockInteraction, mockEnv);
+
+      const embed = response.data.embeds[0];
+      
+      // Green color for positive change (0x00ff00 = 65280)
+      expect(embed.color).toBe(0x00ff00);
+    });
+
+    it('should use red color for negative price change', async () => {
+      const mockInteraction = {
+        id: '123456789',
+        type: 2,
+        data: {
+          name: 'stock',
+          options: [
+            { name: 'ticker', value: 'AMD' }
+          ]
+        },
+        user: { id: 'user_negative', username: 'testuser' }
+      };
+
+      const cachedPrice = {
+        ticker: 'AMD',
+        companyName: 'Advanced Micro Devices',
+        currentPrice: 115.00,
+        changeAmount: -3.50,
+        changePercent: -2.95,
+        timestamp: Date.now() / 1000
+      };
+
+      const cachedHistory = {
+        closingPrices: [120.00, 118.50, 117.00, 116.00, 115.00],
+        timestamps: [1, 2, 3, 4, 5]
+      };
+
+      mockKV.get.mockImplementation((key) => {
+        if (key === 'ratelimit:user_negative') {
+          return Promise.resolve(null);
+        }
+        if (key === 'stock:price:AMD') {
+          return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key.startsWith('stock:history:AMD')) {
+          return Promise.resolve(JSON.stringify(cachedHistory));
+        }
+        return Promise.resolve(null);
+      });
+
+      mockKV.put.mockResolvedValue(undefined);
+
+      const response = await handleStockCommand(mockInteraction, mockEnv);
+
+      const embed = response.data.embeds[0];
+      
+      // Red color for negative change (0xff0000 = 16711680)
+      expect(embed.color).toBe(0xff0000);
+    });
+
+    it('should handle market hours display', async () => {
+      const mockInteraction = {
+        id: '123456789',
+        type: 2,
+        data: {
+          name: 'stock',
+          options: [
+            { name: 'ticker', value: 'GOOGL' }
+          ]
+        },
+        user: { id: 'user_market_hours', username: 'testuser' }
+      };
+
+      const cachedPrice = {
+        ticker: 'GOOGL',
+        companyName: 'Alphabet Inc.',
+        currentPrice: 140.50,
+        changeAmount: 0.00,
+        changePercent: 0.00,
+        timestamp: Date.now() / 1000
+      };
+
+      const cachedHistory = {
+        closingPrices: [140.50, 140.50, 140.50, 140.50, 140.50],
+        timestamps: [1, 2, 3, 4, 5]
+      };
+
+      mockKV.get.mockImplementation((key) => {
+        if (key === 'ratelimit:user_market_hours') {
+          return Promise.resolve(null);
+        }
+        if (key === 'stock:price:GOOGL') {
+          return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key.startsWith('stock:history:GOOGL')) {
+          return Promise.resolve(JSON.stringify(cachedHistory));
+        }
+        return Promise.resolve(null);
+      });
+
+      mockKV.put.mockResolvedValue(undefined);
+
+      const response = await handleStockCommand(mockInteraction, mockEnv);
+
+      const embed = response.data.embeds[0];
+      
+      // Should have market status field
+      const marketField = embed.fields.find(f => f.name.includes('Market'));
+      expect(marketField).toBeDefined();
+      expect(marketField.value).toBeDefined();
+    });
+  });
 });
