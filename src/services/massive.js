@@ -60,10 +60,15 @@ export async function fetchQuote(ticker, apiKey) {
 
   // Transform Massive.com response to our format
   // API returns previous day's data, so we use close as current price
+  const changeAmount = result.c - result.o;
+  const changePercent = ((result.c - result.o) / result.o) * 100;
+  
   return {
+    ticker: ticker,
+    companyName: ticker, // Massive.com doesn't provide company name, use ticker for now
     currentPrice: result.c,
-    change: result.c - result.o,
-    changePercent: ((result.c - result.o) / result.o) * 100,
+    changeAmount: changeAmount,
+    changePercent: changePercent,
     high: result.h,
     low: result.l,
     open: result.o,

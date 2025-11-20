@@ -26,10 +26,10 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
 
     console.log('[INFO] Requesting AI summary from OpenAI', { ticker, companyName });
 
-    // Make API request with timeout
+    // Make API request with timeout and web search enabled
     const completion = await Promise.race([
       openai.chat.completions.create({
-        model: 'gpt-4o-mini', // Fast and cost-effective model
+        model: 'gpt-5-search-api', // Specialized model with web search capabilities
         messages: [
           {
             role: 'system',
@@ -40,7 +40,8 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
             content: prompt
           }
         ],
-        max_completion_tokens: 300, // Limit output length for concise summaries
+        max_completion_tokens: 3000, // Limit output length for concise summaries
+        web_search_options: {} // Enable web search for search-enabled models
       }),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Request timeout')), CONFIG.OPENAI_TIMEOUT)
@@ -104,7 +105,7 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
 export function formatPrompt(ticker, companyName) {
   return `You are a financial news analyst with web search capabilities. Search the web for the most recent news and developments about ${companyName} (${ticker}) from the past week.
 
-Provide a concise summary (up to 150 words) focusing on:
+Provide a concise summary (3-4 sentences, max 800 characters) focusing on:
 1. Recent factual developments that may impact stock price (earnings, product launches, regulatory news, etc.)
 2. Current market sentiment based on analyst opinions and market reactions
 
@@ -114,6 +115,7 @@ Important guidelines:
 - Provide cautious, balanced interpretation
 - Note: Stock price data shown is from the previous trading day's close, not real-time
 - Do not make buy/sell recommendations
-- CRITICAL: KEEP THE SUMMARY UNDER 150 WORDS. No preamble, no follow-up questions.
-- CRITICAL: Provide a plain text summary without any markdown, headers, numbering, bullet points, or special formatting (no bold, italics, underscores, or other text decorations).`;
+- CRITICAL: Keep response under 800 characters (about 70-90 words). Be extremely concise.
+- CRITICAL: Provide a plain text summary without any markdown, headers, numbering, bullet points, or special formatting (no bold, italics, underscores, or other text decorations).
+- CRITICAL: no citations, URLs, or links.`;
 }

@@ -39,7 +39,10 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
   
   // Format price change with + or - sign
   const changeSign = changePercent >= 0 ? '+' : '';
-  const priceChange = `${changeSign}$${Math.abs(changeAmount).toFixed(2)} (${changeSign}${changePercent.toFixed(2)}%)`;
+  const formattedChangeAmount = changeAmount >= 0 
+    ? `+$${changeAmount.toFixed(2)}` 
+    : `-$${Math.abs(changeAmount).toFixed(2)}`;
+  const priceChange = `${formattedChangeAmount} (${changeSign}${changePercent.toFixed(2)}%)`;
 
   // Build fields array
   const fields = [
@@ -60,11 +63,17 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
     }
   ];
 
-  // Add AI summary field
+  // Add AI summary field (Discord limits field values to 1024 characters)
   if (aiSummary) {
+    // Truncate summary if it exceeds Discord's limit
+    const maxLength = 1020; // Leave room for ellipsis
+    const truncatedSummary = aiSummary.length > maxLength 
+      ? aiSummary.substring(0, maxLength) + '...'
+      : aiSummary;
+    
     fields.push({
       name: '📰 News & Sentiment',
-      value: aiSummary,
+      value: truncatedSummary,
       inline: false
     });
   } else {
