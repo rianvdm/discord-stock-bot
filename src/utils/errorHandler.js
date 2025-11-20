@@ -62,6 +62,8 @@ export function formatErrorResponse(error) {
         userMessage = `🔍 **Not Found**\n${error.message}`;
         if (error.suggestions && error.suggestions.length > 0) {
           userMessage += `\n\n💡 **Did you mean:** ${error.suggestions.join(', ')}`;
+        } else {
+          userMessage += `\n\n💡 **Tip:** Use valid stock ticker symbols like:\n• **AAPL** (Apple)\n• **GOOGL** (Google)\n• **MSFT** (Microsoft)\n• **NET** (Cloudflare)\n• **TSLA** (Tesla)`;
         }
         break;
         

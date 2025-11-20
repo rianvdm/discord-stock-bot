@@ -199,7 +199,7 @@ async function fetchStockData(ticker, env) {
       const suggestions = suggestTickers(ticker);
       throw new BotError(
         ErrorTypes.NOT_FOUND,
-        `Stock ticker "${ticker}" not found or data unavailable.`,
+        `Stock ticker **"${ticker}"** not found. Please check the ticker symbol and try again.`,
         suggestions.length > 0 ? suggestions : null,
         { ticker }
       );
@@ -248,7 +248,7 @@ async function fetchStockData(ticker, env) {
       const suggestions = suggestTickers(ticker);
       throw new BotError(
         ErrorTypes.NOT_FOUND,
-        `Stock ticker "${ticker}" not found.`,
+        `Stock ticker **"${ticker}"** not found. Please check the ticker symbol and try again.`,
         suggestions.length > 0 ? suggestions : null,
         { ticker, originalError: error.message }
       );
