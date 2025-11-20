@@ -201,6 +201,10 @@ async function fetchWithRetry(url, options = {}) {
       const response = await fetch(url, {
         ...options,
         signal: controller.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+          ...options.headers,
+        },
       });
 
       clearTimeout(timeoutId);
@@ -214,6 +218,15 @@ async function fetchWithRetry(url, options = {}) {
       }
 
       const data = await response.json();
+      
+      // Debug: log response for troubleshooting
+      console.log('[DEBUG] Massive.com API response:', JSON.stringify(data).substring(0, 200));
+      
+      // Check for API error in response body (Massive.com returns 200 with error field)
+      if (data.status === 'ERROR' || data.error) {
+        throw new Error(data.error || data.message || 'Unknown API error');
+      }
+      
       return data;
 
     } catch (error) {

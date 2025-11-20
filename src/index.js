@@ -39,14 +39,20 @@ export default {
         });
       }
 
-      // Verify Discord request signature
-      const isValid = await verifyDiscordRequest(request, env.DISCORD_PUBLIC_KEY);
-      if (!isValid) {
-        console.error('[ERROR] Invalid Discord signature');
-        return new Response(JSON.stringify({ error: 'Invalid request signature' }), { 
-          status: 401,
-          headers: { 'Content-Type': 'application/json' },
-        });
+      // Verify Discord request signature (skip in dev mode for local testing)
+      const isDevelopment = env.DEV_MODE === 'true';
+      
+      if (!isDevelopment) {
+        const isValid = await verifyDiscordRequest(request, env.DISCORD_PUBLIC_KEY);
+        if (!isValid) {
+          console.error('[ERROR] Invalid Discord signature');
+          return new Response(JSON.stringify({ error: 'Invalid request signature' }), { 
+            status: 401,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+      } else {
+        console.log('[DEV] Skipping signature verification in development mode');
       }
 
       // Parse interaction from request body
