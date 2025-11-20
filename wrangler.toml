@@ -25,11 +25,12 @@ binding = "RATE_LIMITS"
 id = "f1955f749faf4ef29dd963e0f317fc80"
 
 # Cache Namespace
-# Stores stock data, historical prices, and AI summaries
+# Stores stock data, historical prices, AI summaries, and market status
 # Keys:
 #   - stock:price:{ticker} (TTL: 5 min)
 #   - stock:history:{ticker}:{days} (TTL: 1 hour)
 #   - stock:summary:{ticker} (TTL: 8 hours)
+#   - stock:market_status:{ticker} (TTL: 1 min)
 # Values: JSON strings
 [[kv_namespaces]]
 binding = "CACHE"
@@ -44,12 +45,14 @@ id = "297358b6c2eb43dd9362a22d4e369d9a"
 #   wrangler secret put DISCORD_PUBLIC_KEY
 #   wrangler secret put MASSIVE_API_KEY
 #   wrangler secret put OPENAI_API_KEY
+#   wrangler secret put FINNHUB_API_KEY
 #
 # Required Secrets:
 #   - DISCORD_BOT_TOKEN: Discord bot authentication token
 #   - DISCORD_PUBLIC_KEY: Discord application public key (for signature verification)
 #   - MASSIVE_API_KEY: Massive.com (Polygon.io) API key for stock data
 #   - OPENAI_API_KEY: OpenAI API key for AI-powered news summaries
+#   - FINNHUB_API_KEY: Finnhub API key for real-time market status
 #
 # Optional Secrets:
 #   - DEV_MODE: Set to "true" in local development to skip signature verification
@@ -59,6 +62,7 @@ id = "297358b6c2eb43dd9362a22d4e369d9a"
 #   DISCORD_PUBLIC_KEY=your_key
 #   MASSIVE_API_KEY=your_key
 #   OPENAI_API_KEY=your_key
+#   FINNHUB_API_KEY=your_key
 #   DEV_MODE=true
 
 # ============================================================================

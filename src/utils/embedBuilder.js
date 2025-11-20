@@ -55,13 +55,12 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
       name: '📈 7-Day Trend',
       value: `\`\`\`\n${chart}\n\`\`\``,
       inline: false
+    },
+    {
+      name: '🕐 Market Status',
+      value: marketOpen ? '✅ Market Open' : '🔴 Market Closed (Last Close)',
+      inline: false
     }
-    // TODO: Uncomment when real-time market status detection is implemented
-    // {
-    //   name: '🕐 Market Status',
-    //   value: marketOpen ? '✅ Market Open' : '🔴 Market Closed (Last Close)',
-    //   inline: false
-    // }
   ];
 
   // Add AI summary field (Discord limits field values to 1024 characters)

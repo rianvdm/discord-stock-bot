@@ -11,8 +11,8 @@ describe('OpenAI Service', () => {
       
       expect(prompt).toContain('AAPL');
       expect(prompt).toContain('Apple Inc.');
-      expect(prompt).toContain('up to 150 words');
-      expect(prompt).toContain('previous trading day');
+      expect(prompt).toContain('800 characters');
+      expect(prompt).toContain('concise');
     });
 
     it('should include key instructions in prompt', () => {

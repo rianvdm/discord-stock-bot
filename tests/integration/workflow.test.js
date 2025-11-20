@@ -35,6 +35,7 @@ describe('Integration: Complete Bot Workflows', () => {
       DISCORD_BOT_TOKEN: 'test_bot_token',
       MASSIVE_API_KEY: 'test_massive_key',
       OPENAI_API_KEY: 'test_openai_key',
+      FINNHUB_API_KEY: 'test_finnhub_key',
       RATE_LIMITS: mockKV,
       CACHE: mockKV,
       DEV_MODE: 'true', // Skip signature verification in tests

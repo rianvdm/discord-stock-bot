@@ -1,4 +1,4 @@
-# Discord Stock Bot - Project To-Do List
+e# Discord Stock Bot - Project To-Do List
 
 ## ✅ Phase 0: Discord Bot Setup
 

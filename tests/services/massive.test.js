@@ -50,8 +50,10 @@ describe('Massive.com Service', () => {
       );
 
       expect(result).toEqual({
+        ticker: 'AAPL',
+        companyName: 'AAPL',
         currentPrice: 175.43,
-        change: 175.43 - 174.50,
+        changeAmount: 175.43 - 174.50,
         changePercent: ((175.43 - 174.50) / 174.50) * 100,
         high: 176.12,
         low: 174.21,

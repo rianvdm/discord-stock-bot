@@ -8,6 +8,7 @@ import { BotError, ErrorTypes, formatErrorResponse, logError } from '../utils/er
 import { getCached, setCached } from '../middleware/cache.js';
 import { fetchQuote, fetchHistoricalData, suggestTickers } from '../services/massive.js';
 import { generateAISummary } from '../services/openai.js';
+import { fetchMarketStatus } from '../services/finnhub.js';
 import { formatChartWithLabels } from '../utils/chartGenerator.js';
 import { buildStockEmbed } from '../utils/embedBuilder.js';
 import { CONFIG } from '../config.js';
@@ -118,14 +119,16 @@ async function fetchStockData(ticker, env) {
   const cacheKV = env.CACHE;
   const massiveApiKey = env.MASSIVE_API_KEY;
   const openaiApiKey = env.OPENAI_API_KEY;
+  const finnhubApiKey = env.FINNHUB_API_KEY;
 
   try {
     // Step 1: Check all caches in parallel
     console.log('[INFO] Checking caches for', ticker);
-    const [cachedPrice, cachedHistory, cachedSummary] = await Promise.all([
+    const [cachedPrice, cachedHistory, cachedSummary, cachedMarketStatus] = await Promise.all([
       getCached(cacheKV, 'price', ticker),
       getCached(cacheKV, 'history', ticker, CONFIG.DEFAULT_PERIOD_DAYS),
-      getCached(cacheKV, 'summary', ticker)
+      getCached(cacheKV, 'summary', ticker),
+      getCached(cacheKV, 'market_status', ticker)
     ]);
 
     // Step 2: Fetch missing data from APIs in parallel
@@ -161,6 +164,16 @@ async function fetchStockData(ticker, env) {
       );
     }
 
+    // Fetch market status if not cached (non-blocking, can fail)
+    if (!cachedMarketStatus) {
+      console.log('[INFO] Fetching market status from Finnhub', { ticker });
+      fetchPromises.push(
+        fetchMarketStatus(ticker, finnhubApiKey)
+          .then(data => ({ type: 'market_status', data }))
+          .catch(error => ({ type: 'market_status', error }))
+      );
+    }
+
     // Wait for all fetches to complete
     const fetchResults = await Promise.all(fetchPromises);
 
@@ -168,6 +181,7 @@ async function fetchStockData(ticker, env) {
     let priceData = cachedPrice;
     let historyData = cachedHistory;
     let summaryData = cachedSummary;
+    let marketStatusData = cachedMarketStatus;
     let hasStockDataError = false;
 
     for (const result of fetchResults) {
@@ -180,9 +194,9 @@ async function fetchStockData(ticker, env) {
             ticker,
             error: result.error.message
           });
-        } else if (result.type === 'summary') {
-          // AI summary failed - not critical
-          console.warn(`[WARN] AI summary failed (non-critical)`, {
+        } else if (result.type === 'summary' || result.type === 'market_status') {
+          // AI summary or market status failed - not critical
+          console.warn(`[WARN] ${result.type} failed (non-critical)`, {
             ticker,
             error: result.error.message
           });
@@ -195,6 +209,8 @@ async function fetchStockData(ticker, env) {
           historyData = result.data;
         } else if (result.type === 'summary') {
           summaryData = result.data;
+        } else if (result.type === 'market_status') {
+          marketStatusData = result.data;
         }
       }
     }
@@ -227,6 +243,10 @@ async function fetchStockData(ticker, env) {
       cacheUpdatePromises.push(setCached(cacheKV, 'summary', ticker, summaryData));
     }
 
+    if (!cachedMarketStatus && marketStatusData) {
+      cacheUpdatePromises.push(setCached(cacheKV, 'market_status', ticker, marketStatusData));
+    }
+
     // Update caches (fire and forget, don't wait)
     if (cacheUpdatePromises.length > 0) {
       Promise.all(cacheUpdatePromises).catch(error => {
@@ -239,7 +259,8 @@ async function fetchStockData(ticker, env) {
       ticker,
       price: priceData,
       history: historyData,
-      summary: summaryData || null // null if AI summary failed
+      summary: summaryData || null, // null if AI summary failed
+      marketStatus: marketStatusData || null // null if market status failed
     };
 
   } catch (error) {
@@ -271,18 +292,18 @@ async function fetchStockData(ticker, env) {
 
 /**
  * Build the final stock response with embed
- * @param {Object} stockData - Complete stock data including price, history, and summary
+ * @param {Object} stockData - Complete stock data including price, history, summary, and market status
  * @returns {Object} Discord interaction response with embed
  */
 function buildStockResponse(stockData) {
-  const { price, history, summary } = stockData;
+  const { price, history, summary, marketStatus } = stockData;
 
   // Generate chart from historical closing prices
   const chart = formatChartWithLabels(history.closingPrices);
 
-  // Determine if market is open (for now, always show as closed since we use previous close)
-  // Future enhancement: implement actual market hours detection
-  const marketOpen = false;
+  // Determine if market is open from Finnhub real-time data
+  // Default to false if market status fetch failed
+  const marketOpen = marketStatus ? marketStatus.isOpen : false;
 
   // Build the stock embed with all data
   const embed = buildStockEmbed(
