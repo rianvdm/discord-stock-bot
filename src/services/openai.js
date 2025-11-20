@@ -40,7 +40,7 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
             content: prompt
           }
         ],
-        max_completion_tokens: 500, // Limit output length for concise summaries
+        max_completion_tokens: 3000, // Limit output length for concise summaries
         web_search_options: {} // Enable web search for search-enabled models
       }),
       new Promise((_, reject) => 
@@ -103,9 +103,9 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
  * @returns {string} Formatted prompt
  */
 export function formatPrompt(ticker, companyName) {
-  return `You are a financial news analyst with web search capabilities. Search the web for the most recent news and developments about ${companyName} (${ticker}) from the past 24-48 hours.
+  return `You are a financial news analyst with web search capabilities. Search the web for the most recent news and developments about ${companyName} (${ticker}) from the past week.
 
-Provide a concise 2-4 sentence summary focusing on:
+Provide a concise summary (up to 150 words) focusing on:
 1. Recent factual developments that may impact stock price (earnings, product launches, regulatory news, etc.)
 2. Current market sentiment based on analyst opinions and market reactions
 
@@ -114,5 +114,7 @@ Important guidelines:
 - Be factual about numbers and events
 - Provide cautious, balanced interpretation
 - Note: Stock price data shown is from the previous trading day's close, not real-time
-- Do not make buy/sell recommendations`;
+- Do not make buy/sell recommendations
+- CRITICAL: KEEP THE SUMMARY UNDER 150 WORDS. No preamble, no follow-up questions.
+- CRITICAL: Provide a plain text summary without any markdown, headers, numbering, bullet points, or special formatting (no bold, italics, underscores, or other text decorations).`;
 }
