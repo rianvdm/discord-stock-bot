@@ -116,7 +116,7 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
  * @returns {string} Formatted prompt
  */
 export function formatPrompt(ticker, companyName) {
-  return `You are a financial news analyst with web search capabilities. Search the web for the most recent news and developments about ${companyName} (${ticker}) from the past week.
+  return `You are a financial news analyst with web search capabilities. Search the web for the most recent news and developments about ${companyName} (${ticker}) from the 72 hours.
 
 Provide a concise summary (3-4 sentences, max 800 characters) focusing on:
 1. Recent factual developments that may impact stock price (earnings, product launches, regulatory news, etc.)
@@ -129,5 +129,5 @@ Important guidelines:
 - Do not make buy/sell recommendations
 - CRITICAL: Keep response under 800 characters (about 70-90 words). Be extremely concise.
 - CRITICAL: Provide a plain text summary without any markdown, headers, numbering, bullet points, or special formatting (no bold, italics, underscores, or other text decorations).
-- CRITICAL: NO preamble or follow-ups, NO citations, URLs, or links.`;
+- CRITICAL: NO preamble or follow-ups, NO citations, NO URLs, NO links.`;
 }

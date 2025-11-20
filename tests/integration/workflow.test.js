@@ -213,15 +213,15 @@ describe('Integration: Complete Bot Workflows', () => {
       );
 
       // Verify: Caches were checked
-      expect(mockKV.get).toHaveBeenCalledWith(expect.stringContaining('stock:price:AAPL'));
+      expect(mockKV.get).toHaveBeenCalledWith(expect.stringContaining('stock:market_status:AAPL'));
       expect(mockKV.get).toHaveBeenCalledWith(expect.stringContaining('stock:history:AAPL'));
       expect(mockKV.get).toHaveBeenCalledWith(expect.stringContaining('stock:summary:AAPL'));
 
       // Verify: Caches were updated
       expect(mockKV.put).toHaveBeenCalledWith(
-        expect.stringContaining('stock:price:AAPL'),
+        expect.stringContaining('stock:market_status:AAPL'),
         expect.any(String),
-        expect.objectContaining({ expirationTtl: 300 }) // 5 minutes
+        expect.objectContaining({ expirationTtl: 60 }) // 1 minute
       );
       expect(mockKV.put).toHaveBeenCalledWith(
         expect.stringContaining('stock:history:AAPL'),
@@ -325,7 +325,7 @@ describe('Integration: Complete Bot Workflows', () => {
       expect(fetchCalls.some(url => url.includes('discord.com'))).toBe(true);
 
       // Verify: Cache was checked
-      expect(mockKV.get).toHaveBeenCalledWith(expect.stringContaining('stock:price:AAPL'));
+      expect(mockKV.get).toHaveBeenCalledWith(expect.stringContaining('stock:market_status:AAPL'));
       expect(mockKV.get).toHaveBeenCalledWith(expect.stringContaining('stock:history:AAPL'));
       expect(mockKV.get).toHaveBeenCalledWith(expect.stringContaining('stock:summary:AAPL'));
     });
@@ -597,6 +597,21 @@ describe('Integration: Complete Bot Workflows', () => {
             }),
           });
         }
+        if (url.includes('finnhub.io')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              c: 85.50,
+              d: 0.50,
+              dp: 0.59,
+              h: 86.00,
+              l: 84.50,
+              o: 85.00,
+              pc: 85.00,
+              t: Math.floor(Date.now() / 1000),
+            }),
+          });
+        }
         if (url.includes('openai.com')) {
           return Promise.reject(new Error('OpenAI rate limit exceeded'));
         }
@@ -611,9 +626,9 @@ describe('Integration: Complete Bot Workflows', () => {
 
       // Mock rate limit and cache
       mockKV.get.mockResolvedValueOnce(null); // Rate limit
-      mockKV.get.mockResolvedValueOnce(null); // Price cache
       mockKV.get.mockResolvedValueOnce(null); // History cache
       mockKV.get.mockResolvedValueOnce(null); // Summary cache
+      mockKV.get.mockResolvedValueOnce(null); // Market status cache
       mockKV.put.mockResolvedValue(undefined);
 
       // Create interaction
@@ -653,7 +668,7 @@ describe('Integration: Complete Bot Workflows', () => {
 
       // Verify: Stock data was cached even though AI failed
       expect(mockKV.put).toHaveBeenCalledWith(
-        expect.stringContaining('stock:price:NET'),
+        expect.stringContaining('stock:market_status:NET'),
         expect.any(String),
         expect.any(Object)
       );

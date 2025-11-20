@@ -185,42 +185,14 @@ describe('buildStockEmbed', () => {
     expect(priceField.name).toContain('Current Price');
   });
 
-  it('should use real-time price from Finnhub when market is open', () => {
-    const realTimePrice = {
-      currentPrice: 180.50,
-      change: 5.07,
-      changePercent: 2.89
-    };
-    
-    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true, realTimePrice);
+  it('should always use provided price data (from Finnhub)', () => {
+    // Price data is always from Finnhub regardless of market status
+    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
 
     const priceField = embed.fields.find(f => f.name.includes('Current Price'));
     expect(priceField).toBeDefined();
-    expect(priceField.value).toContain('$180.50'); // Real-time price
-    expect(priceField.value).toContain('2.89%'); // Real-time change percent
-  });
-
-  it('should use Massive.com price when market is closed even if real-time data provided', () => {
-    const realTimePrice = {
-      currentPrice: 180.50,
-      change: 5.07,
-      changePercent: 2.89
-    };
-    
-    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, false, realTimePrice);
-
-    const priceField = embed.fields.find(f => f.name.includes('Previous Close'));
-    expect(priceField).toBeDefined();
-    expect(priceField.value).toContain('$175.43'); // Massive.com price
-    expect(priceField.value).toContain('2.30%'); // Massive.com change percent
-  });
-
-  it('should handle null real-time price gracefully', () => {
-    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true, null);
-
-    const priceField = embed.fields.find(f => f.name.includes('Current Price'));
-    expect(priceField).toBeDefined();
-    expect(priceField.value).toContain('$175.43'); // Falls back to Massive.com
+    expect(priceField.value).toContain('$175.43'); // Uses provided price data
+    expect(priceField.value).toContain('2.30%'); // Uses provided change percent
   });
 });
 

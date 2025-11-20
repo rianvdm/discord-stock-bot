@@ -20,14 +20,13 @@ export function getEmbedColor(changePercent) {
 
 /**
  * Builds a rich embed for stock data
- * @param {Object} stockData - Stock price and company information
+ * @param {Object} stockData - Stock price and company information (always from Finnhub)
  * @param {string} chart - Formatted ASCII chart with labels
  * @param {string|null} aiSummary - AI-generated news summary (optional)
  * @param {boolean} marketOpen - Whether the market is currently open
- * @param {Object|null} realTimePrice - Real-time price data from Finnhub (when market is open)
  * @returns {Object} Discord embed object
  */
-export function buildStockEmbed(stockData, chart, aiSummary, marketOpen, realTimePrice = null) {
+export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
   const { 
     ticker, 
     companyName, 
@@ -36,10 +35,10 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen, realTim
     changeAmount 
   } = stockData;
 
-  // Use real-time price if available and market is open
-  const displayPrice = (marketOpen && realTimePrice) ? realTimePrice.currentPrice : currentPrice;
-  const displayChange = (marketOpen && realTimePrice) ? realTimePrice.change : changeAmount;
-  const displayChangePercent = (marketOpen && realTimePrice) ? realTimePrice.changePercent : changePercent;
+  // Price data always comes from Finnhub (most up-to-date)
+  const displayPrice = currentPrice;
+  const displayChange = changeAmount;
+  const displayChangePercent = changePercent;
 
   const color = getEmbedColor(displayChangePercent);
   
