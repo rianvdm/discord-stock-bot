@@ -315,6 +315,7 @@ Verify you have all required credentials saved:
 - [ ] Handle validation errors
 - [ ] Handle rate limit errors
 - [ ] Run tests: All structure tests passing
+- [ ] Note: Responses should clarify showing "previous close" price, not real-time
 
 ### Step 13: Stock Command - Data Fetching
 - [ ] Add test: Parallel cache reads

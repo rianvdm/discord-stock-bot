@@ -2,10 +2,10 @@
 
 ## 1. Project Overview
 
-A Discord bot deployed on Cloudflare Workers that provides real-time stock information, price trends, and AI-powered news summaries through slash commands.
+A Discord bot deployed on Cloudflare Workers that provides stock information, price trends, and AI-powered news summaries through slash commands.
 
 ### 1.1 Core Features
-- Real-time stock price lookup via slash command
+- Stock price lookup via slash command (previous close price)
 - 7-day price trend visualization (ASCII sparkline)
 - AI-generated news summary with sentiment analysis
 - Rate limiting per user
@@ -173,13 +173,14 @@ Displays bot usage instructions, rate limits, and data sources.
 
 **Endpoints Used:**
 
-1. **Real-time Quote:** `GET /quote`
-   - Returns: current price, change, percent change, high, low, open, previous close
+1. **Previous Day Quote:** `GET /v2/aggs/ticker/{ticker}/prev`
+   - Returns: previous trading day's OHLC data (open, high, low, close)
+   - Note: This provides previous close price, not real-time intraday data
    - Cache: 5 minutes
 
-2. **Historical Data:** `GET /stock/candle`
-   - Parameters: symbol, resolution (daily), from/to timestamps (7 days)
-   - Returns: Array of closing prices
+2. **Historical Data:** `GET /v2/aggs/ticker/{ticker}/range/1/day/{from}/{to}`
+   - Parameters: ticker, date range (7 days)
+   - Returns: Array of daily bars with closing prices
    - Cache: 1 hour
 
 **Error Handling:**
@@ -190,18 +191,18 @@ Displays bot usage instructions, rate limits, and data sources.
 ### 4.2 AI Summary: OpenAI
 
 **Model:** `gpt-5-search-api`
-**Features:** Web search enabled for real-time news
+**Features:** Web search enabled for recent news
 
 **Prompt Template:**
 ```
-You are a financial news analyst. Search the web for recent news 
-about [COMPANY_NAME] ([TICKER]) and provide a concise 2-4 sentence 
-summary focusing on:
+You are a financial news analyst. Search the web for recent news about [COMPANY_NAME] ([TICKER]) and provide 
+a concise 2-4 sentence summary focusing on:
 1. Recent factual developments that may impact stock price
 2. Current market sentiment (cautious interpretation, not bold predictions)
 
-Be factual about numbers and events. Provide cautious, balanced 
-interpretation. Do not make buy/sell recommendations.
+Note: Price data shown is from the previous trading day's close, not real-time.
+Be factual about numbers and events. Provide cautious, balanced interpretation. 
+Do not make buy/sell recommendations.
 ```
 
 **Configuration:**
@@ -406,17 +407,18 @@ console.error('[ERROR] API failure', {
 
 ### 8.2 Outside Market Hours Behavior
 
-**When markets are closed:**
-- Show most recent closing price
-- Add timestamp: "Last Close: [date/time] ET"
-- Color embed as neutral (gray)
+**Current Limitation:**
+- Bot always shows previous trading day's close price (not real-time intraday)
+- This is because we use the `/prev` endpoint which returns previous day aggregate data
+- Add timestamp to indicate when data is from
+- Color coding still reflects day-over-day change
 - Trend chart shows previous 7 trading days
 - AI summary still attempts to fetch latest news
 
 **Implementation:**
-- Massive.com API returns previous close when market is closed
-- No special logic needed initially
-- Track `latestTradingDay` field from API response
+- Massive.com `/prev` endpoint always returns previous complete trading day
+- Display should clarify this is "Previous Close" not "Current Price"
+- Track timestamp from API response to show data freshness
 
 ### 8.3 Future: International Markets
 
