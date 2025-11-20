@@ -99,3 +99,103 @@ export async function fetchMarketStatus(ticker, apiKey) {
     throw error;
   }
 }
+
+/**
+ * Fetch company profile (including name) for a given ticker from Finnhub
+ * 
+ * @param {string} ticker - Stock ticker symbol (e.g., 'AAPL')
+ * @param {string} apiKey - Finnhub API key
+ * @returns {Promise<Object>} Company profile with name, exchange, etc.
+ * @throws {Error} If API request fails or data is invalid
+ */
+export async function fetchCompanyProfile(ticker, apiKey) {
+  const url = `${FINNHUB_BASE_URL}/stock/profile2?symbol=${ticker}&token=${apiKey}`;
+  
+  const startTime = Date.now();
+  
+  try {
+    // Create abort controller for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), CONFIG.FINNHUB_TIMEOUT);
+
+    const response = await fetch(url, {
+      method: 'GET',
+      signal: controller.signal,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    // Handle HTTP errors
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error(`Company profile for ${ticker} not found on Finnhub`);
+      } else if (response.status === 429) {
+        throw new Error('Finnhub API rate limit exceeded');
+      } else if (response.status === 401 || response.status === 403) {
+        throw new Error('Invalid Finnhub API key');
+      }
+      throw new Error(`Finnhub API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const duration = Date.now() - startTime;
+
+    console.log('[INFO] Finnhub company profile fetched', {
+      ticker,
+      duration: `${duration}ms`,
+      hasName: !!data.name
+    });
+
+    // If no data returned or empty object, ticker not found
+    if (!data || Object.keys(data).length === 0 || !data.name) {
+      // Return ticker as fallback name
+      return {
+        ticker,
+        name: ticker,
+        fallback: true
+      };
+    }
+
+    return {
+      ticker: data.ticker || ticker,
+      name: data.name,
+      exchange: data.exchange,
+      ipo: data.ipo,
+      marketCap: data.marketCapitalization,
+      fallback: false
+    };
+
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    
+    if (error.name === 'AbortError') {
+      console.error('[ERROR] Finnhub company profile timeout', {
+        ticker,
+        duration: `${duration}ms`,
+        timeout: CONFIG.FINNHUB_TIMEOUT
+      });
+      // Return ticker as fallback
+      return {
+        ticker,
+        name: ticker,
+        fallback: true
+      };
+    }
+
+    console.error('[ERROR] Finnhub company profile failed', {
+      ticker,
+      duration: `${duration}ms`,
+      error: error.message
+    });
+    
+    // Return ticker as fallback instead of throwing
+    return {
+      ticker,
+      name: ticker,
+      fallback: true
+    };
+  }
+}

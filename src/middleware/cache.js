@@ -5,7 +5,7 @@ import { CONFIG } from '../config.js';
 
 /**
  * Generates a cache key for KV storage
- * @param {string} type - Type of data: 'price', 'history', 'summary', or 'market_status'
+ * @param {'price'|'history'|'summary'|'market_status'|'company_profile'} type - Type of data: 'price', 'history', 'summary', 'market_status', or 'company_profile'
  * @param {string} ticker - Stock ticker symbol
  * @param {number} [days] - Number of days (for history data)
  * @returns {string} Cache key
@@ -22,15 +22,16 @@ export function generateCacheKey(type, ticker, days) {
 
 /**
  * Gets the TTL (Time To Live) in seconds for a cache type
- * @param {string} type - Type of data: 'price', 'history', 'summary', or 'market_status'
+ * @param {'price'|'history'|'summary'|'market_status'|'company_profile'} type - Type of data: 'price', 'history', 'summary', 'market_status', or 'company_profile'
  * @returns {number} TTL in seconds
  */
 export function getTTL(type) {
   const ttls = {
-    price: CONFIG.CACHE_TTL_PRICE,           // 300 seconds (5 minutes)
-    history: CONFIG.CACHE_TTL_HISTORY,       // 3600 seconds (1 hour)
-    summary: CONFIG.CACHE_TTL_SUMMARY,       // 28800 seconds (8 hours)
-    market_status: CONFIG.CACHE_TTL_MARKET_STATUS, // 60 seconds (1 minute)
+    price: CONFIG.CACHE_TTL_PRICE,                     // 5 minutes
+    history: CONFIG.CACHE_TTL_HISTORY,                 // 1 hour
+    summary: CONFIG.CACHE_TTL_SUMMARY,                 // 8 hours
+    market_status: CONFIG.CACHE_TTL_MARKET_STATUS,     // 1 minute
+    company_profile: CONFIG.CACHE_TTL_COMPANY_PROFILE, // 3 days
   };
   
   return ttls[type] || CONFIG.CACHE_TTL_PRICE;
@@ -39,7 +40,7 @@ export function getTTL(type) {
 /**
  * Retrieves cached data from KV storage
  * @param {KVNamespace} kv - Cloudflare KV namespace
- * @param {string} type - Type of data: 'price', 'history', 'summary', or 'market_status'
+ * @param {string} type - Type of data: 'price', 'history', 'summary', 'market_status', or 'company_profile'
  * @param {string} ticker - Stock ticker symbol
  * @param {number} [days] - Number of days (for history data)
  * @returns {Promise<any|null>} Cached data or null if not found/error
@@ -73,7 +74,7 @@ export async function getCached(kv, type, ticker, days) {
 /**
  * Stores data in KV cache with appropriate TTL
  * @param {KVNamespace} kv - Cloudflare KV namespace
- * @param {string} type - Type of data: 'price', 'history', 'summary', or 'market_status'
+ * @param {string} type - Type of data: 'price', 'history', 'summary', 'market_status', or 'company_profile'
  * @param {string} ticker - Stock ticker symbol
  * @param {any} value - Data to cache
  * @param {number} [days] - Number of days (for history data)

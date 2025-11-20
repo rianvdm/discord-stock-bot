@@ -8,7 +8,7 @@ import { BotError, ErrorTypes, formatErrorResponse, logError } from '../utils/er
 import { getCached, setCached } from '../middleware/cache.js';
 import { fetchHistoricalData, suggestTickers } from '../services/massive.js';
 import { generateAISummary } from '../services/openai.js';
-import { fetchMarketStatus } from '../services/finnhub.js';
+import { fetchMarketStatus, fetchCompanyProfile } from '../services/finnhub.js';
 import { formatChartWithLabels } from '../utils/chartGenerator.js';
 import { buildStockEmbed } from '../utils/embedBuilder.js';
 import { CONFIG } from '../config.js';
@@ -124,10 +124,11 @@ async function fetchStockData(ticker, env) {
   try {
     // Step 1: Check all caches in parallel
     console.log('[INFO] Checking caches for', ticker);
-    const [cachedHistory, cachedSummary, cachedMarketStatus] = await Promise.all([
+    const [cachedHistory, cachedSummary, cachedMarketStatus, cachedCompanyProfile] = await Promise.all([
       getCached(cacheKV, 'history', ticker, CONFIG.DEFAULT_PERIOD_DAYS),
       getCached(cacheKV, 'summary', ticker),
-      getCached(cacheKV, 'market_status', ticker)
+      getCached(cacheKV, 'market_status', ticker),
+      getCached(cacheKV, 'company_profile', ticker)
     ]);
 
     // Step 2: Fetch missing data from APIs in parallel
@@ -163,6 +164,16 @@ async function fetchStockData(ticker, env) {
       );
     }
 
+    // Fetch company profile if not cached (for company name)
+    if (!cachedCompanyProfile) {
+      console.log('[INFO] Fetching company profile from Finnhub', { ticker });
+      fetchPromises.push(
+        fetchCompanyProfile(ticker, finnhubApiKey)
+          .then(data => ({ type: 'company_profile', data }))
+          .catch(error => ({ type: 'company_profile', error }))
+      );
+    }
+
     // Wait for all fetches to complete
     const fetchResults = await Promise.all(fetchPromises);
 
@@ -170,6 +181,7 @@ async function fetchStockData(ticker, env) {
     let historyData = cachedHistory;
     let summaryData = cachedSummary;
     let marketStatusData = cachedMarketStatus;
+    let companyProfileData = cachedCompanyProfile;
     let hasStockDataError = false;
 
     for (const result of fetchResults) {
@@ -182,8 +194,8 @@ async function fetchStockData(ticker, env) {
             ticker,
             error: result.error.message
           });
-        } else if (result.type === 'summary') {
-          // AI summary failed - not critical
+        } else if (result.type === 'summary' || result.type === 'company_profile') {
+          // AI summary or company profile failed - not critical
           console.warn(`[WARN] ${result.type} failed (non-critical)`, {
             ticker,
             error: result.error.message
@@ -197,6 +209,8 @@ async function fetchStockData(ticker, env) {
           summaryData = result.data;
         } else if (result.type === 'market_status') {
           marketStatusData = result.data;
+        } else if (result.type === 'company_profile') {
+          companyProfileData = result.data;
         }
       }
     }
@@ -213,9 +227,10 @@ async function fetchStockData(ticker, env) {
     }
 
     // Transform Finnhub data to include ticker and companyName for consistency
+    const companyName = companyProfileData ? companyProfileData.name : ticker;
     const priceData = {
       ticker: ticker,
-      companyName: ticker, // Use ticker as company name (Finnhub free tier doesn't provide this)
+      companyName: companyName,
       currentPrice: marketStatusData.currentPrice,
       changeAmount: marketStatusData.change,
       changePercent: marketStatusData.changePercent,
@@ -239,6 +254,11 @@ async function fetchStockData(ticker, env) {
     if (!cachedMarketStatus && marketStatusData) {
       // Cache the raw Finnhub data
       cacheUpdatePromises.push(setCached(cacheKV, 'market_status', ticker, marketStatusData));
+    }
+
+    if (!cachedCompanyProfile && companyProfileData) {
+      // Cache company profile (3 day TTL - company names rarely change)
+      cacheUpdatePromises.push(setCached(cacheKV, 'company_profile', ticker, companyProfileData));
     }
 
     // Update caches (fire and forget, don't wait)

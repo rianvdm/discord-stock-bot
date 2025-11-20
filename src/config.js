@@ -26,6 +26,7 @@ export const CONFIG = {
   CACHE_TTL_PRICE: 300,        // 5 minutes
   CACHE_TTL_HISTORY: 3600,     // 1 hour
   CACHE_TTL_SUMMARY: 28800,    // 8 hours
+  CACHE_TTL_COMPANY_PROFILE: 259200,  // 3 days (company names rarely change)
   CACHE_TTL_MARKET_STATUS: 60, // 1 minute (market status changes frequently)
   
   // Stock Data
