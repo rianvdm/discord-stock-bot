@@ -2,16 +2,17 @@
 
 A powerful Discord bot that provides real-time stock information, 7-day price trends, and AI-powered news summaries through slash commands. Built on Cloudflare Workers for global edge deployment.
 
-[![Tests](https://img.shields.io/badge/tests-289%20passing-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-280%20passing-brightgreen)]()
 [![Cloudflare Workers](https://img.shields.io/badge/platform-Cloudflare%20Workers-orange)]()
 [![Discord.js](https://img.shields.io/badge/discord-slash%20commands-blue)]()
 
 ## ✨ Features
 
-- **📈 Stock Price Lookup**: Get the previous day's closing price for any ticker symbol
+- **💰 Real-Time Stock Prices**: Live current prices when market is open, previous close when market is closed
+- **🕐 Market Status Detection**: Automatically detects market hours using real-time quote freshness
 - **📊 7-Day Trend Visualization**: Beautiful ASCII sparkline charts showing price movement
 - **🤖 AI News Summaries**: GPT-powered summaries of recent news with sentiment analysis
-- **⚡ Smart Caching**: Reduces API costs with intelligent multi-tier caching (5min/1hr/8hr)
+- **⚡ Smart Caching**: Reduces API costs with intelligent multi-tier caching (1min/5min/1hr/8hr)
 - **🛡️ Rate Limiting**: Built-in rate limiting (1 query per minute per user) prevents abuse
 - **🎨 Rich Embeds**: Color-coded Discord embeds (green/red/gray) with detailed information
 - **🌍 Edge Deployment**: Runs on Cloudflare's global network for ultra-low latency
@@ -23,7 +24,8 @@ A powerful Discord bot that provides real-time stock information, 7-day price tr
 - **Node.js 18+** (for local development)
 - **Cloudflare Account** (free tier works great)
 - **Discord Bot Token** (from [Discord Developer Portal](https://discord.com/developers/applications))
-- **Massive.com API Key** (for stock data, free tier: 5 calls/min)
+- **Massive.com API Key** (for historical stock data, free tier: 5 calls/min)
+- **Finnhub API Key** (for real-time quotes & market status, free tier: 60 calls/min)
 - **OpenAI API Key** (for AI summaries)
 
 ### Installation
@@ -48,7 +50,8 @@ A powerful Discord bot that provides real-time stock information, 7-day price tr
    - See [Discord Bot Setup Guide](./instructions/prompt_plan.md#step-0-discord-bot-setup) for detailed instructions
 
 4. **Get API Keys**
-   - **Massive.com**: Sign up at https://massive.com/ (formerly Polygon.io)
+   - **Massive.com**: Sign up at https://massive.com/ (formerly Polygon.io) for historical data
+   - **Finnhub**: Sign up at https://finnhub.io/ for real-time quotes
    - **OpenAI**: Get API key from https://platform.openai.com/api-keys
 
 5. **Configure Local Development**
@@ -58,6 +61,7 @@ A powerful Discord bot that provides real-time stock information, 7-day price tr
    DISCORD_BOT_TOKEN=your_bot_token_here
    DISCORD_PUBLIC_KEY=your_public_key_here
    MASSIVE_API_KEY=your_massive_api_key_here
+   FINNHUB_API_KEY=your_finnhub_api_key_here
    OPENAI_API_KEY=your_openai_api_key_here
    DEV_MODE=true
    ```
@@ -74,7 +78,7 @@ A powerful Discord bot that provides real-time stock information, 7-day price tr
    ```bash
    npm test
    ```
-   You should see 289 tests passing ✅
+   You should see 280 tests passing ✅
 
 8. **Start Local Development**
    ```bash
@@ -95,6 +99,7 @@ A powerful Discord bot that provides real-time stock information, 7-day price tr
    wrangler secret put DISCORD_BOT_TOKEN
    wrangler secret put DISCORD_PUBLIC_KEY
    wrangler secret put MASSIVE_API_KEY
+   wrangler secret put FINNHUB_API_KEY
    wrangler secret put OPENAI_API_KEY
    ```
 
@@ -129,7 +134,8 @@ Get comprehensive stock information for a ticker symbol.
 ```
 
 **Response includes:**
-- 💰 Previous Close price with change percentage
+- 💰 Current Price (when market open) or Previous Close (when market closed)
+- 🕐 Market Status (Open/Closed with real-time detection)
 - 📈 7-Day price trend (ASCII sparkline chart)
 - 📰 AI-generated news summary with sentiment
 
@@ -141,9 +147,10 @@ Display bot usage instructions, rate limits, and data sources.
 ```
 User: /stock NET
 Bot: 📊 NET - Cloudflare Inc.
-     💰 Previous Close: $85.50 (+1.2%)
+     💰 Current Price: $85.50 (+1.2%)
      📈 7-Day Trend: ▁▃▅▆█
      $84.00 → $85.50
+     🕐 Market Status: ✅ Market Open
      
      📰 News & Sentiment
      Cloudflare reported strong Q3 earnings...
@@ -164,20 +171,21 @@ Bot: 📊 NET - Cloudflare Inc.
 │  │  2. Rate Limiter (KV Check)                  │  │
 │  │  3. Cache Layer (KV Read)                    │  │
 │  │  4. Data Orchestrator                        │  │
-│  │     - Stock Price Service                    │  │
-│  │     - Historical Data Service                │  │
-│  │     - AI Summary Service                     │  │
+│  │     - Stock Price Service (Massive.com)     │  │
+│  │     - Real-Time Quotes (Finnhub)            │  │
+│  │     - Historical Data Service               │  │
+│  │     - AI Summary Service                    │  │
 │  │  5. Response Formatter                       │  │
 │  │  6. Error Handler                            │  │
 │  └──────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────┘
-         │                │                 │
-         ↓                ↓                 ↓
-    ┌──────────┐    ┌──────────┐    ┌──────────────┐
-    │ Massive  │    │ OpenAI   │    │ Cloudflare   │
-    │   .com   │    │ gpt-4o-  │    │      KV      │
-    │   API    │    │  mini    │    │   Storage    │
-    └──────────┘    └──────────┘    └──────────────┘
+         │          │          │              │
+         ↓          ↓          ↓              ↓
+    ┌──────────┐ ┌────────┐ ┌────────┐ ┌──────────┐
+    │ Massive  │ │Finnhub │ │ OpenAI │ │Cloudflare│
+    │   .com   │ │  API   │ │gpt-4o- │ │    KV    │
+    │   API    │ │        │ │ mini   │ │ Storage  │
+    └──────────┘ └────────┘ └────────┘ └──────────┘
 ```
 
 ### Tech Stack
@@ -186,10 +194,11 @@ Bot: 📊 NET - Cloudflare Inc.
 - **Language**: JavaScript (ES Modules)
 - **APIs**:
   - Discord Interactions API (slash commands)
-  - Massive.com API (stock data)
-  - OpenAI API (AI summaries)
+  - Massive.com API (historical stock data)
+  - Finnhub API (real-time quotes & market status)
+  - OpenAI API (AI summaries with web search)
 - **Storage**: Cloudflare KV (caching & rate limiting)
-- **Testing**: Vitest (289 tests, 100% core coverage)
+- **Testing**: Vitest (280 tests, comprehensive coverage)
 
 ## 🔧 Development
 
@@ -205,6 +214,7 @@ discord-stock-bot/
 │   │   └── help.js              # /help command handler
 │   ├── services/
 │   │   ├── massive.js           # Massive.com API client
+│   │   ├── finnhub.js           # Finnhub API client (real-time quotes)
 │   │   ├── openai.js            # OpenAI API client
 │   │   └── discord.js           # Discord API utilities
 │   ├── middleware/
@@ -249,8 +259,8 @@ npm run test:watch
 npm test -- --coverage
 ```
 
-Current test results: **289 tests passing** ✅
-- 278 unit tests
+Current test results: **280 tests passing** ✅
+- 269 unit tests
 - 11 integration tests
 
 ### Local Development
@@ -270,15 +280,17 @@ Current test results: **289 tests passing** ✅
 
 ## 📊 Caching Strategy
 
-The bot uses a three-tier caching strategy to optimize API costs and response times:
+The bot uses a four-tier caching strategy to optimize API costs and response times:
 
 | Data Type | TTL | Rationale |
 |-----------|-----|-----------|
+| **Market Status** | 1 minute | Real-time detection needs frequent updates |
 | **Stock Prices** | 5 minutes | Balance between real-time data and API costs |
 | **Historical Data** | 1 hour | Changes infrequently, safe to cache longer |
 | **AI Summaries** | 8 hours | Most expensive, news doesn't change minute-to-minute |
 
 **Cache Hit Rates (Target):**
+- Market status: >50%
 - Stock prices: >60%
 - Historical data: >80%
 - AI summaries: >90%
@@ -317,7 +329,8 @@ Set via `wrangler secret put <NAME>`:
 
 - `DISCORD_BOT_TOKEN` - Discord bot token
 - `DISCORD_PUBLIC_KEY` - Discord application public key
-- `MASSIVE_API_KEY` - Massive.com API key
+- `MASSIVE_API_KEY` - Massive.com API key (historical data)
+- `FINNHUB_API_KEY` - Finnhub API key (real-time quotes)
 - `OPENAI_API_KEY` - OpenAI API key
 - `DEV_MODE` - Set to "true" to skip signature verification in local dev
 
@@ -327,16 +340,18 @@ See `src/config.js` for configurable constants:
 
 ```javascript
 export const CONFIG = {
-  RATE_LIMIT_SECONDS: 60,          // Rate limit window
-  CACHE_TTL_PRICE: 300,            // 5 minutes
-  CACHE_TTL_HISTORY: 3600,         // 1 hour
-  CACHE_TTL_SUMMARY: 28800,        // 8 hours
-  DEFAULT_PERIOD_DAYS: 7,          // Historical data period
-  FINNHUB_TIMEOUT: 10000,          // API timeout (ms)
-  OPENAI_TIMEOUT: 30000,           // OpenAI timeout (ms)
-  EMBED_COLOR_POSITIVE: 0x00ff00,  // Green
-  EMBED_COLOR_NEGATIVE: 0xff0000,  // Red
-  EMBED_COLOR_NEUTRAL: 0x808080,   // Gray
+  RATE_LIMIT_SECONDS: 60,              // Rate limit window
+  CACHE_TTL_MARKET_STATUS: 60,         // 1 minute
+  CACHE_TTL_PRICE: 300,                // 5 minutes
+  CACHE_TTL_HISTORY: 3600,             // 1 hour
+  CACHE_TTL_SUMMARY: 28800,            // 8 hours
+  DEFAULT_PERIOD_DAYS: 7,              // Historical data period
+  MASSIVE_TIMEOUT: 10000,              // Massive.com API timeout (ms)
+  FINNHUB_TIMEOUT: 5000,               // Finnhub API timeout (ms)
+  OPENAI_TIMEOUT: 30000,               // OpenAI timeout (ms)
+  EMBED_COLOR_POSITIVE: 0x00ff00,      // Green
+  EMBED_COLOR_NEGATIVE: 0xff0000,      // Red
+  EMBED_COLOR_NEUTRAL: 0x808080,       // Gray
 };
 ```
 
@@ -399,7 +414,10 @@ With the free tiers:
 - KV: 100,000 reads/day, 1,000 writes/day
 
 **Massive.com**
-- Free: 5 API calls/minute
+- Free: 5 API calls/minute (historical data)
+
+**Finnhub**
+- Free: 60 API calls/minute (real-time quotes)
 
 **OpenAI**
 - Pay per token (~$0.01-0.05 per request with gpt-4o-mini)
@@ -444,8 +462,9 @@ ISC
 
 ## 🙏 Acknowledgments
 
-- **Massive.com** (formerly Polygon.io) for stock market data
-- **OpenAI** for AI-powered summaries
+- **Massive.com** (formerly Polygon.io) for historical stock market data
+- **Finnhub** for real-time quotes and market status
+- **OpenAI** for AI-powered summaries with web search
 - **Cloudflare** for edge computing platform
 - **Discord** for the bot platform
 
