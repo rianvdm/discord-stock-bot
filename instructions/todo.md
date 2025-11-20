@@ -375,17 +375,17 @@ Verify you have all required credentials saved:
 - [x] Integration test: Worker handles all interaction types
 
 ### Step 16: Command Registration Script
-- [ ] Install additional packages if needed (@discordjs/rest, discord-api-types)
-- [ ] Create scripts/register-commands.js
-- [ ] Define /stock command structure with options
-- [ ] Define /help command structure
-- [ ] Implement Discord API registration
-- [ ] Support environment variables: DISCORD_TOKEN, DISCORD_APP_ID
-- [ ] Support optional GUILD_ID for guild-specific commands
-- [ ] Add error handling for registration failures
-- [ ] Add success logging
-- [ ] Test script locally (dry run mode if possible)
-- [ ] Document usage in script comments
+- [x] Install additional packages if needed (@discordjs/rest, discord-api-types)
+- [x] Create scripts/register-commands.js
+- [x] Define /stock command structure with options
+- [x] Define /help command structure
+- [x] Implement Discord API registration
+- [x] Support environment variables: DISCORD_TOKEN, DISCORD_APP_ID
+- [x] Support optional GUILD_ID for guild-specific commands
+- [x] Add error handling for registration failures
+- [x] Add success logging
+- [x] Test script locally (dry run mode if possible)
+- [x] Document usage in script comments
 
 ### Step 17: Integration Testing
 - [ ] Create tests/integration/workflow.test.js
