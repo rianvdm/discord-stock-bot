@@ -24,9 +24,10 @@ export function getEmbedColor(changePercent) {
  * @param {string} chart - Formatted ASCII chart with labels
  * @param {string|null} aiSummary - AI-generated news summary (optional)
  * @param {boolean} marketOpen - Whether the market is currently open
+ * @param {Object|null} realTimePrice - Real-time price data from Finnhub (when market is open)
  * @returns {Object} Discord embed object
  */
-export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
+export function buildStockEmbed(stockData, chart, aiSummary, marketOpen, realTimePrice = null) {
   const { 
     ticker, 
     companyName, 
@@ -35,20 +36,27 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
     changeAmount 
   } = stockData;
 
-  const color = getEmbedColor(changePercent);
+  // Use real-time price if available and market is open
+  const displayPrice = (marketOpen && realTimePrice) ? realTimePrice.currentPrice : currentPrice;
+  const displayChange = (marketOpen && realTimePrice) ? realTimePrice.change : changeAmount;
+  const displayChangePercent = (marketOpen && realTimePrice) ? realTimePrice.changePercent : changePercent;
+
+  const color = getEmbedColor(displayChangePercent);
   
   // Format price change with + or - sign
-  const changeSign = changePercent >= 0 ? '+' : '';
-  const formattedChangeAmount = changeAmount >= 0 
-    ? `+$${changeAmount.toFixed(2)}` 
-    : `-$${Math.abs(changeAmount).toFixed(2)}`;
-  const priceChange = `${formattedChangeAmount} (${changeSign}${changePercent.toFixed(2)}%)`;
+  const changeSign = displayChangePercent >= 0 ? '+' : '';
+  const formattedChangeAmount = displayChange >= 0 
+    ? `+$${displayChange.toFixed(2)}` 
+    : `-$${Math.abs(displayChange).toFixed(2)}`;
+  const priceChange = `${formattedChangeAmount} (${changeSign}${displayChangePercent.toFixed(2)}%)`;
 
-  // Build fields array
+  // Build fields array - show "Current Price" when market is open, "Previous Close" when closed
+  const priceLabel = marketOpen ? '💰 Current Price' : '💰 Previous Close';
+  
   const fields = [
     {
-      name: '💰 Previous Close',
-      value: `**$${currentPrice.toFixed(2)}** ${priceChange}`,
+      name: priceLabel,
+      value: `**$${displayPrice.toFixed(2)}** ${priceChange}`,
       inline: false
     },
     {

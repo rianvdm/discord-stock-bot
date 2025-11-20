@@ -86,10 +86,10 @@ describe('buildStockEmbed', () => {
     expect(embed.color).toBe(0xff0000);
   });
 
-  it('should include current price field with change', () => {
-    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
+  it('should include price field with change', () => {
+    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, false);
 
-    const priceField = embed.fields.find(f => f.name.includes('Previous Close'));
+    const priceField = embed.fields.find(f => f.name.includes('💰'));
     expect(priceField).toBeDefined();
     expect(priceField.value).toContain('$175.43');
     expect(priceField.value).toContain('2.30%'); // Formatted with 2 decimal places
@@ -151,9 +151,9 @@ describe('buildStockEmbed', () => {
   });
 
   it('should format positive change with + sign', () => {
-    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
+    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, false);
 
-    const priceField = embed.fields.find(f => f.name.includes('Previous Close'));
+    const priceField = embed.fields.find(f => f.name.includes('💰'));
     expect(priceField.value).toMatch(/\+/);
   });
 
@@ -163,10 +163,64 @@ describe('buildStockEmbed', () => {
       changePercent: -2.3,
       changeAmount: -3.95
     };
-    const embed = buildStockEmbed(negativeData, mockChart, mockAiSummary, true);
+    const embed = buildStockEmbed(negativeData, mockChart, mockAiSummary, false);
+
+    const priceField = embed.fields.find(f => f.name.includes('💰'));
+    expect(priceField.value).toMatch(/-/);
+  });
+
+  it('should show "Previous Close" label when market is closed', () => {
+    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, false);
+
+    const priceField = embed.fields.find(f => f.name.includes('💰'));
+    expect(priceField).toBeDefined();
+    expect(priceField.name).toContain('Previous Close');
+  });
+
+  it('should show "Current Price" label when market is open', () => {
+    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
+
+    const priceField = embed.fields.find(f => f.name.includes('💰'));
+    expect(priceField).toBeDefined();
+    expect(priceField.name).toContain('Current Price');
+  });
+
+  it('should use real-time price from Finnhub when market is open', () => {
+    const realTimePrice = {
+      currentPrice: 180.50,
+      change: 5.07,
+      changePercent: 2.89
+    };
+    
+    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true, realTimePrice);
+
+    const priceField = embed.fields.find(f => f.name.includes('Current Price'));
+    expect(priceField).toBeDefined();
+    expect(priceField.value).toContain('$180.50'); // Real-time price
+    expect(priceField.value).toContain('2.89%'); // Real-time change percent
+  });
+
+  it('should use Massive.com price when market is closed even if real-time data provided', () => {
+    const realTimePrice = {
+      currentPrice: 180.50,
+      change: 5.07,
+      changePercent: 2.89
+    };
+    
+    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, false, realTimePrice);
 
     const priceField = embed.fields.find(f => f.name.includes('Previous Close'));
-    expect(priceField.value).toMatch(/-/);
+    expect(priceField).toBeDefined();
+    expect(priceField.value).toContain('$175.43'); // Massive.com price
+    expect(priceField.value).toContain('2.30%'); // Massive.com change percent
+  });
+
+  it('should handle null real-time price gracefully', () => {
+    const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true, null);
+
+    const priceField = embed.fields.find(f => f.name.includes('Current Price'));
+    expect(priceField).toBeDefined();
+    expect(priceField.value).toContain('$175.43'); // Falls back to Massive.com
   });
 });
 

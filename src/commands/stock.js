@@ -305,6 +305,13 @@ function buildStockResponse(stockData) {
   // Default to false if market status fetch failed
   const marketOpen = marketStatus ? marketStatus.isOpen : false;
 
+  // Extract real-time price data from Finnhub (if available and market is open)
+  const realTimePrice = (marketOpen && marketStatus) ? {
+    currentPrice: marketStatus.currentPrice,
+    change: marketStatus.change,
+    changePercent: marketStatus.changePercent
+  } : null;
+
   // Build the stock embed with all data
   const embed = buildStockEmbed(
     {
@@ -316,7 +323,8 @@ function buildStockResponse(stockData) {
     },
     chart,
     summary, // Can be null if AI summary failed
-    marketOpen
+    marketOpen,
+    realTimePrice // Real-time price from Finnhub (when market is open)
   );
 
   // Return as non-ephemeral embed response (visible to everyone)
