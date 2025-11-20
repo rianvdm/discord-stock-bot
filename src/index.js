@@ -1,7 +1,7 @@
 // ABOUTME: Main Cloudflare Worker entry point for Discord Stock Bot
 // ABOUTME: Handles Discord interactions and routes commands to appropriate handlers
 
-import { verifyDiscordRequest } from './services/discord.js';
+import { verifyDiscordRequest, createDeferredResponse, sendFollowupMessage } from './services/discord.js';
 import { handleStockCommand } from './commands/stock.js';
 import { handleHelpCommand } from './commands/help.js';
 import { BotError, ErrorTypes, formatErrorResponse } from './utils/errorHandler.js';
@@ -89,7 +89,56 @@ export default {
         // Route to appropriate command handler
         switch (commandName) {
           case 'stock':
-            response = await handleStockCommand(interaction, env);
+            // Use deferred response for slow stock commands
+            // This allows up to 15 minutes to fetch data instead of 3 seconds
+            response = createDeferredResponse(false);
+            
+            // Process command in background and send follow-up
+            ctx.waitUntil((async () => {
+              try {
+                const stockResponse = await handleStockCommand(interaction, env);
+                
+                // Send follow-up message with the actual stock data
+                await sendFollowupMessage(
+                  interaction.application_id,
+                  interaction.token,
+                  stockResponse.data,
+                  env.DISCORD_BOT_TOKEN
+                );
+                
+                const duration = Date.now() - startTime;
+                console.log('[INFO] Stock command completed', { 
+                  userId: interaction.user?.id || interaction.member?.user?.id,
+                  duration: `${duration}ms`,
+                });
+              } catch (error) {
+                console.error('[ERROR] Stock command background processing failed', {
+                  error: error.message,
+                  stack: error.stack,
+                });
+                
+                // Send error as follow-up
+                try {
+                  const errorResponse = error instanceof BotError 
+                    ? formatErrorResponse(error)
+                    : formatErrorResponse(new BotError(
+                        'An unexpected error occurred. Please try again later.',
+                        ErrorTypes.UNKNOWN_ERROR
+                      ));
+                  
+                  await sendFollowupMessage(
+                    interaction.application_id,
+                    interaction.token,
+                    errorResponse.data,
+                    env.DISCORD_BOT_TOKEN
+                  );
+                } catch (followUpError) {
+                  console.error('[ERROR] Failed to send error follow-up', {
+                    error: followUpError.message,
+                  });
+                }
+              }
+            })());
             break;
           
           case 'help':
@@ -103,13 +152,6 @@ export default {
               ErrorTypes.UNKNOWN_ERROR
             );
         }
-
-        const duration = Date.now() - startTime;
-        console.log('[INFO] Command completed', { 
-          commandName, 
-          userId: interaction.user?.id || interaction.member?.user?.id,
-          duration: `${duration}ms`,
-        });
 
         return new Response(JSON.stringify(response), {
           status: 200,

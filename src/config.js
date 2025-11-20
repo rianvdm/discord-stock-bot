@@ -14,8 +14,9 @@ export const CONFIG = {
   DEFAULT_PERIOD_DAYS: 7,      // Future: make configurable per command
   
   // API Timeouts (milliseconds)
-  MASSIVE_TIMEOUT: 10000,
-  OPENAI_TIMEOUT: 15000,
+  // Using deferred responses, we have up to 15 minutes
+  MASSIVE_TIMEOUT: 10000,   // 10 seconds for stock data
+  OPENAI_TIMEOUT: 30000,    // 30 seconds for AI summary with web search
   
   // Market Configuration
   SUPPORTED_MARKETS: ['US'],   // Future: add international

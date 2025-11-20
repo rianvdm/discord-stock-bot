@@ -9,6 +9,7 @@ import { verifyKey } from 'discord-interactions';
 export const InteractionResponseType = {
   PONG: 1,
   CHANNEL_MESSAGE_WITH_SOURCE: 4,
+  DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE: 5, // Show "thinking..." then follow up later
 };
 
 /**
@@ -141,4 +142,50 @@ export function createPongResponse() {
   return {
     type: InteractionResponseType.PONG
   };
+}
+
+/**
+ * Create a deferred response (shows "thinking..." to user)
+ * This gives you up to 15 minutes to send the actual response
+ * @param {boolean} ephemeral - Whether the eventual response should be ephemeral
+ * @returns {Object} Deferred interaction response
+ */
+export function createDeferredResponse(ephemeral = false) {
+  const response = {
+    type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
+  };
+  
+  if (ephemeral) {
+    response.data = {
+      flags: MessageFlags.EPHEMERAL
+    };
+  }
+  
+  return response;
+}
+
+/**
+ * Send a follow-up message after a deferred response
+ * @param {string} applicationId - Discord application ID
+ * @param {string} interactionToken - Interaction token from the original interaction
+ * @param {Object} data - Message data (content, embeds, etc.)
+ * @param {string} botToken - Discord bot token for authentication
+ * @returns {Promise<void>}
+ */
+export async function sendFollowupMessage(applicationId, interactionToken, data, botToken) {
+  const url = `https://discord.com/api/v10/webhooks/${applicationId}/${interactionToken}`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bot ${botToken}`
+    },
+    body: JSON.stringify(data)
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to send follow-up message: ${response.status} ${errorText}`);
+  }
 }

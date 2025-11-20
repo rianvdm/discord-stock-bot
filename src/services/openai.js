@@ -26,10 +26,10 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
 
     console.log('[INFO] Requesting AI summary from OpenAI', { ticker, companyName });
 
-    // Make API request with timeout and web search enabled
+    // Make API request with timeout
     const completion = await Promise.race([
       openai.chat.completions.create({
-        model: 'gpt-5-search-api', // Specialized model with web search capabilities
+        model: 'gpt-4o-mini', // Fast and cost-effective model
         messages: [
           {
             role: 'system',
@@ -40,8 +40,7 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
             content: prompt
           }
         ],
-        max_completion_tokens: 3000, // Limit output length for concise summaries
-        web_search_options: {} // Enable web search for search-enabled models
+        max_completion_tokens: 300, // Limit output length for concise summaries
       }),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Request timeout')), CONFIG.OPENAI_TIMEOUT)
