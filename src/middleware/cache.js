@@ -44,19 +44,27 @@ export function getTTL(type) {
  * @returns {Promise<any|null>} Cached data or null if not found/error
  */
 export async function getCached(kv, type, ticker, days) {
+  const startTime = Date.now();
+  
   try {
     const key = generateCacheKey(type, ticker, days);
     const cached = await kv.get(key);
     
+    const duration = Date.now() - startTime;
+    
     if (!cached) {
-      console.log(`[CACHE MISS] ${key}`);
+      console.log(`[CACHE MISS] ${key}`, { duration: `${duration}ms` });
       return null;
     }
     
-    console.log(`[CACHE HIT] ${key}`);
+    console.log(`[CACHE HIT] ${key}`, { duration: `${duration}ms` });
     return JSON.parse(cached);
   } catch (error) {
-    console.warn(`[CACHE ERROR] Failed to get cached data for ${ticker}:`, error.message);
+    const duration = Date.now() - startTime;
+    console.warn(`[CACHE ERROR] Failed to get cached data for ${ticker}:`, { 
+      error: error.message,
+      duration: `${duration}ms`
+    });
     return null;
   }
 }
@@ -71,15 +79,26 @@ export async function getCached(kv, type, ticker, days) {
  * @returns {Promise<void>}
  */
 export async function setCached(kv, type, ticker, value, days) {
+  const startTime = Date.now();
+  
   try {
     const key = generateCacheKey(type, ticker, days);
     const ttl = getTTL(type);
     const serialized = JSON.stringify(value);
     
     await kv.put(key, serialized, { expirationTtl: ttl });
-    console.log(`[CACHE SET] ${key} (TTL: ${ttl}s)`);
+    
+    const duration = Date.now() - startTime;
+    console.log(`[CACHE SET] ${key} (TTL: ${ttl}s)`, { 
+      duration: `${duration}ms`,
+      size: `${serialized.length} bytes`
+    });
   } catch (error) {
-    console.warn(`[CACHE ERROR] Failed to set cache for ${ticker}:`, error.message);
+    const duration = Date.now() - startTime;
+    console.warn(`[CACHE ERROR] Failed to set cache for ${ticker}:`, { 
+      error: error.message,
+      duration: `${duration}ms`
+    });
     // Fail silently - caching is not critical to operation
   }
 }

@@ -283,6 +283,32 @@ The bot uses a three-tier caching strategy to optimize API costs and response ti
 - Historical data: >80%
 - AI summaries: >90%
 
+## 📈 Performance Monitoring
+
+The bot includes comprehensive performance instrumentation:
+
+**Automated Metrics:**
+- **[PERF]** API response times (Massive.com & OpenAI) with attempt tracking
+- **[CACHE HIT/MISS]** Cache operations with duration and data size
+- **[INFO]** End-to-end request duration tracking
+- **[WARN/ERROR]** Performance issues and bottlenecks
+
+**Monitoring in Production:**
+```bash
+# Watch real-time logs
+wrangler tail
+
+# Look for performance metrics
+wrangler tail | grep PERF
+wrangler tail | grep CACHE
+```
+
+**Performance Targets:**
+- Cached requests: <1 second
+- Uncached requests: <3 seconds (with deferred responses)
+- Cache operations: <50ms
+- API calls: Massive.com <2s, OpenAI <15s
+
 ## ⚙️ Configuration
 
 ### Environment Variables (Secrets)

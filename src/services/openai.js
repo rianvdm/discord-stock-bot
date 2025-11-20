@@ -14,6 +14,8 @@ import { CONFIG } from '../config.js';
  * @throws {Error} If API request fails (throws PARTIAL_FAILURE to not fail entire request)
  */
 export async function generateAISummary(ticker, companyName, apiKey, client = null) {
+  const startTime = Date.now();
+  
   try {
     // Create OpenAI client if not provided (for testing)
     const openai = client || new OpenAI({
@@ -27,6 +29,7 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
     console.log('[INFO] Requesting AI summary from OpenAI', { ticker, companyName });
 
     // Make API request with timeout and web search enabled
+    const apiCallStart = Date.now();
     const completion = await Promise.race([
       openai.chat.completions.create({
         model: 'gpt-5-search-api', // Specialized model with web search capabilities
@@ -58,6 +61,16 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       throw new Error('No content in OpenAI response');
     }
+
+    // Performance: Log API response time
+    const apiCallDuration = Date.now() - apiCallStart;
+    const totalDuration = Date.now() - startTime;
+    console.log('[PERF] OpenAI API response time', {
+      apiDuration: `${apiCallDuration}ms`,
+      totalDuration: `${totalDuration}ms`,
+      summaryLength: content.length,
+      cached: false,
+    });
 
     console.log('[INFO] AI summary generated successfully', { 
       ticker, 

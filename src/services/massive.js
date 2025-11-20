@@ -196,8 +196,10 @@ function isCloseMatch(str1, str2) {
 async function fetchWithRetry(url, options = {}) {
   const maxRetries = 1;
   let lastError;
+  const startTime = Date.now();
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const attemptStart = Date.now();
     try {
       // Create abort controller for timeout
       const controller = new AbortController();
@@ -223,6 +225,16 @@ async function fetchWithRetry(url, options = {}) {
       }
 
       const data = await response.json();
+      
+      // Performance: Log API response time
+      const duration = Date.now() - attemptStart;
+      const totalDuration = Date.now() - startTime;
+      console.log('[PERF] Massive.com API response time', {
+        duration: `${duration}ms`,
+        totalDuration: `${totalDuration}ms`,
+        attempt: attempt + 1,
+        cached: false,
+      });
       
       // Debug: log response for troubleshooting
       console.log('[DEBUG] Massive.com API response:', JSON.stringify(data).substring(0, 200));
