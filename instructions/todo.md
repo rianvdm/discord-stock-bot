@@ -301,36 +301,36 @@ Verify you have all required credentials saved:
 - [ ] Manual test: Help command returns expected embed
 
 ### Step 12: Stock Command - Structure
-- [ ] Create tests/commands/stock.test.js
-- [ ] Write test: Ticker extraction from interaction
-- [ ] Write test: Valid ticker passes validation
-- [ ] Write test: Invalid ticker fails validation
-- [ ] Write test: First request passes rate limit
-- [ ] Write test: Second request blocked by rate limit
-- [ ] Write test: Error response for invalid ticker
-- [ ] Write test: Error response for rate limit
-- [ ] Implement src/commands/stock.js (skeleton)
-- [ ] Extract ticker from interaction options
-- [ ] Validate ticker using validator
-- [ ] Enforce rate limit using rate limiter
-- [ ] Handle validation errors
-- [ ] Handle rate limit errors
-- [ ] Run tests: All structure tests passing
-- [ ] Note: Responses should clarify showing "previous close" price, not real-time
+- [x] Create tests/commands/stock.test.js
+- [x] Write test: Ticker extraction from interaction
+- [x] Write test: Valid ticker passes validation
+- [x] Write test: Invalid ticker fails validation
+- [x] Write test: First request passes rate limit
+- [x] Write test: Second request blocked by rate limit
+- [x] Write test: Error response for invalid ticker
+- [x] Write test: Error response for rate limit
+- [x] Implement src/commands/stock.js (skeleton)
+- [x] Extract ticker from interaction options
+- [x] Validate ticker using validator
+- [x] Enforce rate limit using rate limiter
+- [x] Handle validation errors
+- [x] Handle rate limit errors
+- [x] Run tests: All structure tests passing (17/17 ✅)
+- [x] Note: Responses should clarify showing "previous close" price, not real-time
 
 ### Step 13: Stock Command - Data Fetching
-- [ ] Add test: Parallel cache reads
-- [ ] Add test: Parallel API calls on cache miss
-- [ ] Add test: Cache writes after successful fetch
-- [ ] Add test: Partial failure handling (stock data succeeds, AI fails)
-- [ ] Extend stock.js with fetchStockData function
-- [ ] Check all three caches in parallel (Promise.all)
-- [ ] Fetch missing price and history in parallel
-- [ ] Fetch AI summary (non-blocking, can fail)
-- [ ] Update all caches in parallel
-- [ ] Return complete data object
-- [ ] Run tests: All data fetching tests passing
-- [ ] Verify parallel operations are actually parallel
+- [x] Add test: Parallel cache reads
+- [x] Add test: Parallel API calls on cache miss
+- [x] Add test: Cache writes after successful fetch
+- [x] Add test: Partial failure handling (stock data succeeds, AI fails)
+- [x] Extend stock.js with fetchStockData function
+- [x] Check all three caches in parallel (Promise.all)
+- [x] Fetch missing price and history in parallel
+- [x] Fetch AI summary (non-blocking, can fail)
+- [x] Update all caches in parallel
+- [x] Return complete data object
+- [x] Run tests: All data fetching tests passing (24/24 ✅)
+- [x] Verify parallel operations are actually parallel
 
 ### Step 14: Stock Command - Response Building
 - [ ] Add test: Full response with all data
