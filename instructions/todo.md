@@ -268,20 +268,20 @@ Verify you have all required credentials saved:
 - [x] Test with real API key - summaries generated successfully
 
 ### Step 10: Discord Utilities
-- [ ] Create tests/services/discord.test.js
-- [ ] Write test: Signature verification (valid signature)
-- [ ] Write test: Signature verification (invalid signature)
-- [ ] Write test: Response formatting (type 4)
-- [ ] Write test: Ephemeral flag handling
-- [ ] Write test: Slash command parsing
-- [ ] Mock crypto for signature tests
-- [ ] Implement src/services/discord.js
-- [ ] Implement verifyDiscordRequest function
-- [ ] Implement createInteractionResponse function
-- [ ] Implement createEmbedResponse function
-- [ ] Implement parseSlashCommand function
-- [ ] Use discord-interactions library for verification
-- [ ] Run tests: All Discord utility tests passing
+- [x] Create tests/services/discord.test.js
+- [x] Write test: Signature verification (valid signature)
+- [x] Write test: Signature verification (invalid signature)
+- [x] Write test: Response formatting (type 4)
+- [x] Write test: Ephemeral flag handling
+- [x] Write test: Slash command parsing
+- [x] Mock crypto for signature tests
+- [x] Implement src/services/discord.js
+- [x] Implement verifyDiscordRequest function
+- [x] Implement createInteractionResponse function
+- [x] Implement createEmbedResponse function
+- [x] Implement parseSlashCommand function
+- [x] Use discord-interactions library for verification
+- [x] Run tests: All Discord utility tests passing
 
 ---
 
