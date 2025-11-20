@@ -116,5 +116,5 @@ Important guidelines:
 - Do not make buy/sell recommendations
 - CRITICAL: Keep response under 800 characters (about 70-90 words). Be extremely concise.
 - CRITICAL: Provide a plain text summary without any markdown, headers, numbering, bullet points, or special formatting (no bold, italics, underscores, or other text decorations).
-- CRITICAL: no preamble or follow-ups, citations, URLs, or links.`;
+- CRITICAL: NO preamble or follow-ups, NO citations, URLs, or links.`;
 }

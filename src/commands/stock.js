@@ -83,6 +83,11 @@ export async function handleStockCommand(interaction, env) {
     return response;
     
   } catch (error) {
+    // If it's already a BotError with specific handling, re-throw it
+    if (error instanceof BotError) {
+      throw error;
+    }
+    
     // Handle unexpected errors
     console.error('[ERROR] Stock command failed', {
       error: error.message,

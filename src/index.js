@@ -115,6 +115,9 @@ export default {
                 console.error('[ERROR] Stock command background processing failed', {
                   error: error.message,
                   stack: error.stack,
+                  errorType: error.type,
+                  isBotError: error instanceof BotError,
+                  errorConstructor: error.constructor.name,
                 });
                 
                 // Send error as follow-up
