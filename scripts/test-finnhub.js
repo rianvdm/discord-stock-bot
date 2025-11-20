@@ -1,7 +1,7 @@
 // Quick test script to verify Finnhub integration
 // Run: node test-finnhub.js
 
-import { fetchMarketStatus } from './src/services/finnhub.js';
+import { fetchMarketStatus } from '../src/services/finnhub.js';
 
 const FINNHUB_API_KEY = 'd4f4qjpr01qkcvvgj5jgd4f4qjpr01qkcvvgj5k0';
 
