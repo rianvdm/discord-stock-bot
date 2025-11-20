@@ -26,18 +26,22 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
 
     console.log('[INFO] Requesting AI summary from OpenAI', { ticker, companyName });
 
-    // Make API request with timeout
+    // Make API request with timeout and web search enabled
     const completion = await Promise.race([
       openai.chat.completions.create({
-        model: 'gpt-4o-mini', // Using gpt-4o-mini as a cost-effective option
+        model: 'gpt-5-search-api', // Specialized model with web search capabilities
         messages: [
+          {
+            role: 'system',
+            content: 'You are a financial news analyst. Use succinct, plain language focused on accuracy and professionalism.'
+          },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 300, // Sufficient for 2-4 sentences
-        temperature: 0.3, // More deterministic
+        max_completion_tokens: 500, // Limit output length for concise summaries
+        web_search_options: {} // Enable web search for search-enabled models
       }),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Request timeout')), CONFIG.OPENAI_TIMEOUT)
@@ -99,11 +103,16 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
  * @returns {string} Formatted prompt
  */
 export function formatPrompt(ticker, companyName) {
-  return `You are a financial news analyst. Search the web for recent news about ${companyName} (${ticker}) and provide a concise 2-4 sentence summary focusing on:
-1. Recent factual developments that may impact stock price
-2. Current market sentiment (cautious interpretation, not bold predictions)
+  return `You are a financial news analyst with web search capabilities. Search the web for the most recent news and developments about ${companyName} (${ticker}) from the past 24-48 hours.
 
-Note: Price data shown is from the previous trading day's close, not real-time.
-Be factual about numbers and events. Provide cautious, balanced interpretation. 
-Do not make buy/sell recommendations.`;
+Provide a concise 2-4 sentence summary focusing on:
+1. Recent factual developments that may impact stock price (earnings, product launches, regulatory news, etc.)
+2. Current market sentiment based on analyst opinions and market reactions
+
+Important guidelines:
+- Use web search to find the latest, most current information
+- Be factual about numbers and events
+- Provide cautious, balanced interpretation
+- Note: Stock price data shown is from the previous trading day's close, not real-time
+- Do not make buy/sell recommendations`;
 }

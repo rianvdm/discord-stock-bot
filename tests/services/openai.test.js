@@ -57,15 +57,19 @@ describe('OpenAI Service', () => {
       expect(mockOpenAI.chat.completions.create).toHaveBeenCalledTimes(1);
       expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'gpt-4o-mini',
+          model: 'gpt-5-search-api',
           messages: expect.arrayContaining([
+            expect.objectContaining({
+              role: 'system',
+              content: expect.stringContaining('financial news analyst')
+            }),
             expect.objectContaining({
               role: 'user',
               content: expect.stringContaining('Apple Inc.')
             })
           ]),
-          max_tokens: 300,
-          temperature: 0.3
+          max_completion_tokens: 500,
+          web_search_options: {}
         })
       );
     });
