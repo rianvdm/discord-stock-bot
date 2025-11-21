@@ -2,7 +2,7 @@
 // ABOUTME: Verifies quote fetching, historical data, error handling, and retry logic
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchQuote, fetchHistoricalData, suggestTickers, getTickerFromCompanyName } from '../../src/services/massive.js';
+import { fetchQuote, fetchHistoricalData, suggestTickers, getTickerFromCompanyName, getCompanyName } from '../../src/services/massive.js';
 
 describe('Massive.com Service', () => {
   let originalFetch;
@@ -394,6 +394,61 @@ describe('Massive.com Service', () => {
       expect(getTickerFromCompanyName('NVDA')).toBe('NVDA');
       expect(getTickerFromCompanyName('AAPL')).toBe('AAPL');
       expect(getTickerFromCompanyName('NET')).toBe('NET');
+    });
+  });
+
+  describe('getCompanyName', () => {
+    it('should return company name for valid tickers', () => {
+      expect(getCompanyName('AAPL')).toBe('Apple Inc.');
+      expect(getCompanyName('MSFT')).toBe('Microsoft Corporation');
+      expect(getCompanyName('GOOGL')).toBe('Alphabet Inc.');
+      expect(getCompanyName('NVDA')).toBe('NVIDIA Corporation');
+      expect(getCompanyName('NET')).toBe('Cloudflare Inc.');
+    });
+
+    it('should be case-insensitive', () => {
+      expect(getCompanyName('aapl')).toBe('Apple Inc.');
+      expect(getCompanyName('AaPl')).toBe('Apple Inc.');
+      expect(getCompanyName('MSFT')).toBe('Microsoft Corporation');
+      expect(getCompanyName('msft')).toBe('Microsoft Corporation');
+    });
+
+    it('should return ticker for unknown tickers', () => {
+      expect(getCompanyName('UNKNOWN')).toBe('UNKNOWN');
+      expect(getCompanyName('INVALID')).toBe('INVALID');
+      expect(getCompanyName('XYZ')).toBe('XYZ');
+    });
+
+    it('should handle invalid input gracefully', () => {
+      expect(getCompanyName('')).toBe('');
+      expect(getCompanyName(null)).toBe(null);
+      expect(getCompanyName(undefined)).toBe(undefined);
+    });
+
+    it('should return names for popular tech stocks', () => {
+      expect(getCompanyName('TSLA')).toBe('Tesla Inc.');
+      expect(getCompanyName('AMZN')).toBe('Amazon.com Inc.');
+      expect(getCompanyName('META')).toBe('Meta Platforms Inc.');
+      expect(getCompanyName('NFLX')).toBe('Netflix Inc.');
+    });
+
+    it('should return names for financial stocks', () => {
+      expect(getCompanyName('JPM')).toBe('JPMorgan Chase & Co.');
+      expect(getCompanyName('V')).toBe('Visa Inc.');
+      expect(getCompanyName('MA')).toBe('Mastercard Inc.');
+      expect(getCompanyName('GS')).toBe('The Goldman Sachs Group Inc.');
+    });
+
+    it('should handle both Class A and Class B Berkshire shares', () => {
+      expect(getCompanyName('BRK.A')).toBe('Berkshire Hathaway Inc.');
+      expect(getCompanyName('BRK.B')).toBe('Berkshire Hathaway Inc.');
+    });
+
+    it('should return names for newer tech companies', () => {
+      expect(getCompanyName('UBER')).toBe('Uber Technologies Inc.');
+      expect(getCompanyName('ABNB')).toBe('Airbnb Inc.');
+      expect(getCompanyName('SNOW')).toBe('Snowflake Inc.');
+      expect(getCompanyName('COIN')).toBe('Coinbase Global Inc.');
     });
   });
 

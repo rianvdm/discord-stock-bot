@@ -6,7 +6,7 @@ import { validateTicker } from '../utils/validator.js';
 import { enforceRateLimit } from '../middleware/rateLimit.js';
 import { BotError, ErrorTypes, formatErrorResponse, logError } from '../utils/errorHandler.js';
 import { getCached, setCached } from '../middleware/cache.js';
-import { fetchHistoricalData, suggestTickers } from '../services/massive.js';
+import { fetchHistoricalData, suggestTickers, getCompanyName } from '../services/massive.js';
 import { generateAISummary } from '../services/openai.js';
 import { fetchMarketStatus, fetchCompanyProfile } from '../services/finnhub.js';
 import { formatChartWithLabels } from '../utils/chartGenerator.js';
@@ -147,8 +147,9 @@ async function fetchStockData(ticker, env) {
     // Fetch AI summary if not cached (non-blocking, can fail)
     if (!cachedSummary) {
       console.log('[INFO] Fetching AI summary from OpenAI', { ticker });
+      const companyName = getCompanyName(ticker);
       fetchPromises.push(
-        generateAISummary(ticker, ticker, openaiApiKey) // Using ticker as company name for now
+        generateAISummary(ticker, companyName, openaiApiKey)
           .then(data => ({ type: 'summary', data }))
           .catch(error => ({ type: 'summary', error }))
       );

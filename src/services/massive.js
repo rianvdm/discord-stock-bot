@@ -82,6 +82,85 @@ const POPULAR_TICKERS = [
 ];
 
 /**
+ * Ticker to company name mapping for popular stocks
+ * Used for AI summaries to provide better context
+ */
+const TICKER_TO_COMPANY_NAME = {
+  'AAPL': 'Apple Inc.',
+  'MSFT': 'Microsoft Corporation',
+  'GOOGL': 'Alphabet Inc.',
+  'GOOG': 'Alphabet Inc.',
+  'AMZN': 'Amazon.com Inc.',
+  'NVDA': 'NVIDIA Corporation',
+  'META': 'Meta Platforms Inc.',
+  'TSLA': 'Tesla Inc.',
+  'BRK.B': 'Berkshire Hathaway Inc.',
+  'BRK.A': 'Berkshire Hathaway Inc.',
+  'LLY': 'Eli Lilly and Company',
+  'V': 'Visa Inc.',
+  'UNH': 'UnitedHealth Group Inc.',
+  'XOM': 'Exxon Mobil Corporation',
+  'WMT': 'Walmart Inc.',
+  'JPM': 'JPMorgan Chase & Co.',
+  'MA': 'Mastercard Inc.',
+  'JNJ': 'Johnson & Johnson',
+  'PG': 'Procter & Gamble Co.',
+  'AVGO': 'Broadcom Inc.',
+  'HD': 'The Home Depot Inc.',
+  'CVX': 'Chevron Corporation',
+  'MRK': 'Merck & Co. Inc.',
+  'ABBV': 'AbbVie Inc.',
+  'COST': 'Costco Wholesale Corporation',
+  'KO': 'The Coca-Cola Company',
+  'PEP': 'PepsiCo Inc.',
+  'ADBE': 'Adobe Inc.',
+  'NFLX': 'Netflix Inc.',
+  'CRM': 'Salesforce Inc.',
+  'DIS': 'The Walt Disney Company',
+  'CSCO': 'Cisco Systems Inc.',
+  'ORCL': 'Oracle Corporation',
+  'INTC': 'Intel Corporation',
+  'AMD': 'Advanced Micro Devices Inc.',
+  'NKE': 'Nike Inc.',
+  'PYPL': 'PayPal Holdings Inc.',
+  'CMCSA': 'Comcast Corporation',
+  'TMO': 'Thermo Fisher Scientific Inc.',
+  'QCOM': 'QUALCOMM Inc.',
+  'TXN': 'Texas Instruments Inc.',
+  'BA': 'The Boeing Company',
+  'UNP': 'Union Pacific Corporation',
+  'NEE': 'NextEra Energy Inc.',
+  'HON': 'Honeywell International Inc.',
+  'SBUX': 'Starbucks Corporation',
+  'PM': 'Philip Morris International Inc.',
+  'T': 'AT&T Inc.',
+  'VZ': 'Verizon Communications Inc.',
+  'GE': 'General Electric Company',
+  'IBM': 'International Business Machines',
+  'CAT': 'Caterpillar Inc.',
+  'GS': 'The Goldman Sachs Group Inc.',
+  'MS': 'Morgan Stanley',
+  'AXP': 'American Express Company',
+  'MMM': '3M Company',
+  'NET': 'Cloudflare Inc.',
+  'UBER': 'Uber Technologies Inc.',
+  'LYFT': 'Lyft Inc.',
+  'ABNB': 'Airbnb Inc.',
+  'SNOW': 'Snowflake Inc.',
+  'ZM': 'Zoom Video Communications',
+  'SPOT': 'Spotify Technology',
+  'SNAP': 'Snap Inc.',
+  'PINS': 'Pinterest Inc.',
+  'RBLX': 'Roblox Corporation',
+  'SHOP': 'Shopify Inc.',
+  'SQ': 'Block Inc.',
+  'COIN': 'Coinbase Global Inc.',
+  'ROKU': 'Roku Inc.',
+  'DKNG': 'DraftKings Inc.',
+  'PLTR': 'Palantir Technologies Inc.',
+};
+
+/**
  * Fetch current stock quote from Massive.com
  * @param {string} ticker - Stock ticker symbol (e.g., 'AAPL')
  * @param {string} apiKey - Massive.com API key
@@ -181,6 +260,20 @@ export function getTickerFromCompanyName(companyName) {
   
   const upperName = companyName.toUpperCase();
   return COMMON_TICKER_CORRECTIONS[upperName] || null;
+}
+
+/**
+ * Get company name from ticker symbol
+ * @param {string} ticker - Stock ticker symbol (e.g., "AAPL")
+ * @returns {string} Company name if found in mapping, otherwise returns the ticker
+ */
+export function getCompanyName(ticker) {
+  if (!ticker || typeof ticker !== 'string') {
+    return ticker;
+  }
+  
+  const upperTicker = ticker.toUpperCase();
+  return TICKER_TO_COMPANY_NAME[upperTicker] || ticker;
 }
 
 /**
