@@ -37,6 +37,5 @@
 
 - If a develpoment server is needed, ask me to run `npm run dev` and let you know when the server is available.
 - Ask me to run the tests using `npm test` and present the output to you.
-- You have to run the linter before every commit.
 - NEVER ignore the output of the system or the tests - Logs and messages often contain CRITICAL information.
 - If the logs are supposed to contain errors, capture and test it.
