@@ -103,28 +103,110 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
 }
 
 /**
+ * Builds a rich embed for cryptocurrency data
+ * @param {Object} cryptoData - Crypto price and information
+ * @param {string} chart - Formatted ASCII chart with labels
+ * @param {string|null} aiSummary - AI-generated news summary (optional)
+ * @returns {Object} Discord embed object
+ */
+export function buildCryptoEmbed(cryptoData, chart, aiSummary) {
+  const { 
+    symbol, 
+    name, 
+    currentPrice, 
+    changePercent, 
+    changeAmount,
+    exchange
+  } = cryptoData;
+
+  const color = getEmbedColor(changePercent);
+  
+  // Format price change with + or - sign
+  const changeSign = changePercent >= 0 ? '+' : '';
+  const formattedChangeAmount = changeAmount >= 0 
+    ? `+$${changeAmount.toFixed(2)}` 
+    : `-$${Math.abs(changeAmount).toFixed(2)}`;
+  const priceChange = `${formattedChangeAmount} (${changeSign}${changePercent.toFixed(2)}%)`;
+
+  // Build fields array - crypto markets are 24/7, so always show "Current Price"
+  const fields = [
+    {
+      name: '💰 Current Price',
+      value: `**$${currentPrice.toFixed(2)}** ${priceChange}`,
+      inline: false
+    },
+    {
+      name: '📈 30-Day Trend',
+      value: `\`\`\`\n${chart}\n\`\`\``,
+      inline: false
+    },
+    {
+      name: '🌐 Market Status',
+      value: `✅ 24/7 Trading • Exchange: ${exchange}`,
+      inline: false
+    }
+  ];
+
+  // Add AI summary field (Discord limits field values to 1024 characters)
+  if (aiSummary) {
+    // Truncate summary if it exceeds Discord's limit
+    const maxLength = 1020; // Leave room for ellipsis
+    const truncatedSummary = aiSummary.length > maxLength 
+      ? aiSummary.substring(0, maxLength) + '...'
+      : aiSummary;
+    
+    fields.push({
+      name: '📰 News & Sentiment',
+      value: truncatedSummary,
+      inline: false
+    });
+  } else {
+    fields.push({
+      name: '📰 News & Sentiment',
+      value: '⚠️ AI summary unavailable',
+      inline: false
+    });
+  }
+
+  return {
+    title: `₿ ${symbol} - ${name}`,
+    color: color,
+    fields: fields,
+    footer: {
+      text: 'Data: Finnhub & Massive.com • AI: OpenAI'
+    },
+    timestamp: new Date().toISOString()
+  };
+}
+
+/**
  * Builds a help embed explaining bot usage
  * @returns {Object} Discord embed object
  */
 export function buildHelpEmbed() {
   return {
     title: '📊 Stock Bot - Help',
-    description: 'Get real-time stock prices, market status, trends, and AI-powered news summaries.',
+    description: 'Get real-time stock prices, cryptocurrency data, market status, trends, and AI-powered news summaries.',
     color: CONFIG.EMBED_COLOR_NEUTRAL,
     fields: [
       {
         name: '📌 Commands',
-        value: '**`/stock <ticker>`** - Get stock information\n**`/help`** - Show this help message',
+        value: '**`/stock <ticker>`** - Get stock information\n**`/crypto <symbol>`** - Get cryptocurrency information\n**`/help`** - Show this help message',
         inline: false
       },
       {
-        name: '💡 Examples',
+        name: '💡 Stock Examples',
         value: '`/stock AAPL` - Apple Inc.\n`/stock NET` - Cloudflare\n`/stock GOOGL` - Google',
         inline: false
       },
       {
+        name: '₿ Crypto Examples',
+        value: '`/crypto BTC` - Bitcoin\n`/crypto ETH` - Ethereum\n`/crypto DOGE` - Dogecoin',
+        inline: false
+      },
+      {
         name: '⏱️ Rate Limits',
-        value: 'You can query **1 stock every 30 seconds** to keep the bot running smoothly.',
+        value: 'You can query **1 asset every 30 seconds** to keep the bot running smoothly.',
         inline: false
       },
       {

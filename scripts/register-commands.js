@@ -1,4 +1,4 @@
-// ABOUTME: Registers Discord slash commands (/stock, /help) with Discord API.
+// ABOUTME: Registers Discord slash commands (/stock, /crypto, /help) with Discord API.
 // ABOUTME: Supports both global and guild-specific command registration for testing.
 
 import { REST } from '@discordjs/rest';
@@ -15,6 +15,18 @@ const commands = [
       {
         name: 'ticker',
         description: 'Stock ticker symbol (e.g., AAPL, NET, GOOGL)',
+        type: 3, // STRING type
+        required: true
+      }
+    ]
+  },
+  {
+    name: 'crypto',
+    description: 'Get cryptocurrency price, 30-day trend, and AI-powered news summary',
+    options: [
+      {
+        name: 'symbol',
+        description: 'Crypto symbol (e.g., BTC, ETH, DOGE)',
         type: 3, // STRING type
         required: true
       }

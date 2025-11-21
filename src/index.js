@@ -3,6 +3,7 @@
 
 import { verifyDiscordRequest, createDeferredResponse, sendFollowupMessage } from './services/discord.js';
 import { handleStockCommand } from './commands/stock.js';
+import { handleCryptoCommand } from './commands/crypto.js';
 import { handleHelpCommand } from './commands/help.js';
 import { BotError, ErrorTypes, formatErrorResponse } from './utils/errorHandler.js';
 import { CONFIG } from './config.js';
@@ -130,6 +131,80 @@ export default {
               } catch (error) {
                 const duration = Date.now() - startTime;
                 console.error('[ERROR] Stock command background processing failed', {
+                  error: error.message,
+                  stack: error.stack,
+                  errorType: error.type,
+                  isBotError: error instanceof BotError,
+                  errorConstructor: error.constructor.name,
+                  duration: `${duration}ms`,
+                  timedOut: error.metadata?.timeout ? true : false,
+                });
+                
+                // Send error as follow-up
+                try {
+                  const errorResponse = error instanceof BotError 
+                    ? formatErrorResponse(error)
+                    : formatErrorResponse(new BotError(
+                        ErrorTypes.UNKNOWN,
+                        'An unexpected error occurred. Please try again later.'
+                      ));
+                  
+                  await sendFollowupMessage(
+                    interaction.application_id,
+                    interaction.token,
+                    errorResponse.data,
+                    env.DISCORD_BOT_TOKEN
+                  );
+                } catch (followUpError) {
+                  console.error('[ERROR] Failed to send error follow-up', {
+                    error: followUpError.message,
+                  });
+                }
+              }
+            })());
+            break;
+          
+          case 'crypto':
+            // Use deferred response for slow crypto commands
+            // This allows up to 15 minutes to fetch data instead of 3 seconds
+            response = createDeferredResponse(false);
+            
+            // Process command in background and send follow-up
+            ctx.waitUntil((async () => {
+              try {
+                // Race the command against a timeout to prevent hanging
+                const timeoutPromise = new Promise((_, reject) => {
+                  setTimeout(() => {
+                    reject(new BotError(
+                      ErrorTypes.API_FAILURE,
+                      'Request timed out. The crypto data is taking too long to fetch. Please try again in a moment.',
+                      null,
+                      { timeout: CONFIG.COMMAND_TIMEOUT }
+                    ));
+                  }, CONFIG.COMMAND_TIMEOUT);
+                });
+
+                const cryptoResponse = await Promise.race([
+                  handleCryptoCommand(interaction, env),
+                  timeoutPromise
+                ]);
+                
+                // Send follow-up message with the actual crypto data
+                await sendFollowupMessage(
+                  interaction.application_id,
+                  interaction.token,
+                  cryptoResponse.data,
+                  env.DISCORD_BOT_TOKEN
+                );
+                
+                const duration = Date.now() - startTime;
+                console.log('[INFO] Crypto command completed', { 
+                  userId: interaction.user?.id || interaction.member?.user?.id,
+                  duration: `${duration}ms`,
+                });
+              } catch (error) {
+                const duration = Date.now() - startTime;
+                console.error('[ERROR] Crypto command background processing failed', {
                   error: error.message,
                   stack: error.stack,
                   errorType: error.type,

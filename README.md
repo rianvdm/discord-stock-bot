@@ -1,6 +1,6 @@
-# 📊 Discord Stock Bot
+# 📊 Discord Stock & Crypto Bot
 
-A powerful Discord bot that provides real-time stock information, 30-day price trends, and AI-powered news summaries through slash commands. Built on Cloudflare Workers for global edge deployment.
+A powerful Discord bot that provides real-time stock and cryptocurrency information, 30-day price trends, and AI-powered news summaries through slash commands. Built on Cloudflare Workers for global edge deployment.
 
 [![Add to Discord](https://img.shields.io/badge/Add%20to-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1440825435612254280&permissions=346176&integration_type=0&scope=bot+applications.commands)
 
@@ -8,6 +8,7 @@ A powerful Discord bot that provides real-time stock information, 30-day price t
 ## ✨ Features
 
 - **💰 Real-Time Stock Prices**: Live current prices when market is open, previous close when market is closed
+- **₿ Cryptocurrency Support**: Bitcoin, Ethereum, and major cryptocurrencies with 24/7 trading
 - **🕐 Market Status Detection**: Automatically detects market hours using real-time quote freshness
 - **📉 30-Day Trend Visualization**: Beautiful ASCII sparkline charts showing price movement
 - **🤖 AI News Summaries**: GPT-powered summaries of recent news with sentiment analysis
@@ -140,11 +141,31 @@ Get comprehensive stock information for a ticker symbol.
 - 📈 30-Day price trend (ASCII sparkline chart)
 - 📰 AI-generated news summary with sentiment
 
+#### `/crypto <symbol>`
+Get comprehensive cryptocurrency information for a crypto symbol.
+
+**Example:**
+```
+/crypto BTC
+```
+
+**Response includes:**
+- 💰 Current Price (live from Binance)
+- 🌐 24/7 Trading Status
+- 📈 30-Day price trend (ASCII sparkline chart)
+- 📰 AI-generated news summary with sentiment
+
+**Supported Symbols:**
+- Use short symbols: `BTC`, `ETH`, `DOGE`, `SOL`, `ADA`, etc.
+- Or full names: `BITCOIN`, `ETHEREUM`, `DOGECOIN`
+- Supports 25+ major cryptocurrencies
+
 #### `/help`
 Display bot usage instructions, rate limits, and data sources.
 
 ### Example Interactions
 
+**Stock Example:**
 ```
 User: /stock NET
 Bot: 📊 NET - Cloudflare Inc.
@@ -155,6 +176,19 @@ Bot: 📊 NET - Cloudflare Inc.
      
      📰 News & Sentiment
      Cloudflare reported strong Q3 earnings...
+```
+
+**Crypto Example:**
+```
+User: /crypto BTC
+Bot: ₿ BTC - Bitcoin
+     💰 Current Price: $42,500.50 (+2.9%)
+     📈 30-Day Trend: ▁▃▅▇█
+     $41,300 → $42,500
+     🌐 Market Status: ✅ 24/7 Trading • Exchange: BINANCE
+     
+     📰 News & Sentiment
+     Bitcoin surged past $42,000 amid institutional adoption...
 ```
 
 ## 🏗️ Architecture
@@ -212,10 +246,13 @@ discord-stock-bot/
 │   ├── config.js                # Configuration constants
 │   ├── commands/
 │   │   ├── stock.js             # /stock command handler
+│   │   ├── crypto.js            # /crypto command handler
 │   │   └── help.js              # /help command handler
 │   ├── services/
-│   │   ├── massive.js           # Massive.com API client
-│   │   ├── finnhub.js           # Finnhub API client (real-time quotes)
+│   │   ├── massive.js           # Massive.com API client (stocks)
+│   │   ├── massiveCrypto.js     # Massive.com API client (crypto)
+│   │   ├── finnhub.js           # Finnhub API client (stocks)
+│   │   ├── finnhubCrypto.js     # Finnhub API client (crypto)
 │   │   ├── openai.js            # OpenAI API client
 │   │   └── discord.js           # Discord API utilities
 │   ├── middleware/
@@ -225,8 +262,9 @@ discord-stock-bot/
 │       ├── chartGenerator.js    # ASCII sparkline generator
 │       ├── embedBuilder.js      # Discord embed formatter
 │       ├── errorHandler.js      # Centralized error handling
-│       └── validator.js         # Input validation
-├── tests/                       # Test suites (289 tests)
+│       ├── validator.js         # Stock ticker validation
+│       └── cryptoValidator.js   # Crypto symbol validation
+├── tests/                       # Test suites (350+ tests)
 ├── scripts/
 │   └── register-commands.js     # Discord command registration
 ├── instructions/                # Development guides

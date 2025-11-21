@@ -1,8 +1,8 @@
 // ABOUTME: Tests for Discord embed builder utility
-// ABOUTME: Validates rich embed formatting for stock data and help messages
+// ABOUTME: Validates rich embed formatting for stock data, crypto data, and help messages
 
 import { describe, it, expect } from 'vitest';
-import { getEmbedColor, buildStockEmbed, buildHelpEmbed } from '../../src/utils/embedBuilder.js';
+import { getEmbedColor, buildStockEmbed, buildCryptoEmbed, buildHelpEmbed } from '../../src/utils/embedBuilder.js';
 
 describe('getEmbedColor', () => {
   it('should return green for positive price change', () => {
@@ -253,5 +253,152 @@ describe('buildHelpEmbed', () => {
     const embed = buildHelpEmbed();
 
     expect(embed.fields || embed.description).toBeTruthy();
+  });
+
+  it('should include crypto command information', () => {
+    const embed = buildHelpEmbed();
+
+    const text = JSON.stringify(embed);
+    expect(text).toContain('/crypto');
+  });
+
+  it('should include crypto examples', () => {
+    const embed = buildHelpEmbed();
+
+    const text = JSON.stringify(embed);
+    expect(text).toMatch(/BTC|ETH|Bitcoin/i);
+  });
+});
+
+describe('buildCryptoEmbed', () => {
+  const mockCryptoData = {
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    currentPrice: 42500.50,
+    changePercent: 2.9,
+    changeAmount: 1200.30,
+    exchange: 'BINANCE'
+  };
+
+  const mockChart = '▁▃▅▆█\n$41,300 → $42,500';
+  const mockAiSummary = 'Bitcoin surged past $42,000 amid institutional adoption news. Market sentiment remains bullish.';
+
+  it('should create embed with all required fields', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    expect(embed).toHaveProperty('title');
+    expect(embed).toHaveProperty('color');
+    expect(embed).toHaveProperty('fields');
+    expect(embed).toHaveProperty('footer');
+    expect(embed).toHaveProperty('timestamp');
+  });
+
+  it('should format title with symbol and name', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    expect(embed.title).toContain('BTC');
+    expect(embed.title).toContain('Bitcoin');
+  });
+
+  it('should set green color for positive change', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    expect(embed.color).toBe(0x00ff00);
+  });
+
+  it('should set red color for negative change', () => {
+    const negativeData = { ...mockCryptoData, changePercent: -2.5, changeAmount: -1000.00 };
+    const embed = buildCryptoEmbed(negativeData, mockChart, mockAiSummary);
+
+    expect(embed.color).toBe(0xff0000);
+  });
+
+  it('should include price with change', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    const priceField = embed.fields.find(f => f.name.includes('Price'));
+    expect(priceField).toBeDefined();
+    expect(priceField.value).toContain('42500.50');
+    expect(priceField.value).toContain('2.9');
+  });
+
+  it('should include chart', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    const chartField = embed.fields.find(f => f.name.includes('Trend'));
+    expect(chartField).toBeDefined();
+    expect(chartField.value).toContain(mockChart);
+  });
+
+  it('should indicate 24/7 trading', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    const statusField = embed.fields.find(f => f.name.includes('Market Status'));
+    expect(statusField).toBeDefined();
+    expect(statusField.value).toContain('24/7');
+  });
+
+  it('should include exchange information', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    const statusField = embed.fields.find(f => f.name.includes('Market Status'));
+    expect(statusField.value).toContain('BINANCE');
+  });
+
+  it('should include AI summary when provided', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    const summaryField = embed.fields.find(f => f.name.includes('News'));
+    expect(summaryField).toBeDefined();
+    expect(summaryField.value).toBe(mockAiSummary);
+  });
+
+  it('should handle missing AI summary', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, null);
+
+    const summaryField = embed.fields.find(f => f.name.includes('News'));
+    expect(summaryField).toBeDefined();
+    expect(summaryField.value).toContain('unavailable');
+  });
+
+  it('should truncate long AI summaries', () => {
+    const longSummary = 'A'.repeat(1100);
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, longSummary);
+
+    const summaryField = embed.fields.find(f => f.name.includes('News'));
+    expect(summaryField.value.length).toBeLessThanOrEqual(1024); // Discord limit
+  });
+
+  it('should format positive price change correctly', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    const priceField = embed.fields.find(f => f.name.includes('Price'));
+    expect(priceField.value).toContain('+$1200.30');
+    expect(priceField.value).toContain('+2.9');
+  });
+
+  it('should format negative price change correctly', () => {
+    const negativeData = { ...mockCryptoData, changePercent: -3.2, changeAmount: -1400.50 };
+    const embed = buildCryptoEmbed(negativeData, mockChart, mockAiSummary);
+
+    const priceField = embed.fields.find(f => f.name.includes('Price'));
+    expect(priceField.value).toContain('-$1400.50');
+    expect(priceField.value).toContain('-3.2');
+  });
+
+  it('should include footer with data sources', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    expect(embed.footer).toBeDefined();
+    expect(embed.footer.text).toContain('Finnhub');
+    expect(embed.footer.text).toContain('Massive.com');
+    expect(embed.footer.text).toContain('OpenAI');
+  });
+
+  it('should have valid timestamp', () => {
+    const embed = buildCryptoEmbed(mockCryptoData, mockChart, mockAiSummary);
+
+    expect(embed.timestamp).toBeDefined();
+    expect(new Date(embed.timestamp).getTime()).not.toBeNaN();
   });
 });
