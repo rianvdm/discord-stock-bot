@@ -127,7 +127,7 @@ async function fetchCryptoData(symbol, polygonTicker, env) {
     // Step 1: Check all caches in parallel
     console.log('[INFO] Checking caches for crypto', symbol);
     const [cachedHistory, cachedSummary, cachedQuote] = await Promise.all([
-      getCached(cacheKV, 'crypto_history', symbol, CONFIG.DEFAULT_PERIOD_DAYS),
+      getCached(cacheKV, 'crypto_history', symbol, CONFIG.CRYPTO_HISTORY_DAYS),
       getCached(cacheKV, 'crypto_summary', symbol),
       getCached(cacheKV, 'crypto_quote', symbol)
     ]);
@@ -139,7 +139,7 @@ async function fetchCryptoData(symbol, polygonTicker, env) {
     if (!cachedHistory) {
       console.log('[INFO] Fetching crypto historical data from Massive.com', { symbol, polygonTicker });
       fetchPromises.push(
-        fetchCryptoHistoricalData(polygonTicker, CONFIG.DEFAULT_PERIOD_DAYS, massiveApiKey)
+        fetchCryptoHistoricalData(polygonTicker, CONFIG.CRYPTO_HISTORY_DAYS, massiveApiKey)
           .then(data => ({ type: 'history', data }))
           .catch(error => ({ type: 'history', error }))
       );
@@ -233,7 +233,7 @@ async function fetchCryptoData(symbol, polygonTicker, env) {
 
     if (!cachedHistory && historyData) {
       cacheUpdatePromises.push(
-        setCached(cacheKV, 'crypto_history', symbol, historyData, CONFIG.DEFAULT_PERIOD_DAYS)
+        setCached(cacheKV, 'crypto_history', symbol, historyData, CONFIG.CRYPTO_HISTORY_DAYS)
       );
     }
 

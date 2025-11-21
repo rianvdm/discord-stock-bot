@@ -125,7 +125,7 @@ async function fetchStockData(ticker, env) {
     // Step 1: Check all caches in parallel
     console.log('[INFO] Checking caches for', ticker);
     const [cachedHistory, cachedSummary, cachedMarketStatus, cachedCompanyProfile] = await Promise.all([
-      getCached(cacheKV, 'history', ticker, CONFIG.DEFAULT_PERIOD_DAYS),
+      getCached(cacheKV, 'history', ticker, CONFIG.STOCK_HISTORY_DAYS),
       getCached(cacheKV, 'summary', ticker),
       getCached(cacheKV, 'market_status', ticker),
       getCached(cacheKV, 'company_profile', ticker)
@@ -138,7 +138,7 @@ async function fetchStockData(ticker, env) {
     if (!cachedHistory) {
       console.log('[INFO] Fetching historical data from Massive.com', { ticker });
       fetchPromises.push(
-        fetchHistoricalData(ticker, CONFIG.DEFAULT_PERIOD_DAYS, massiveApiKey)
+        fetchHistoricalData(ticker, CONFIG.STOCK_HISTORY_DAYS, massiveApiKey)
           .then(data => ({ type: 'history', data }))
           .catch(error => ({ type: 'history', error }))
       );
@@ -244,7 +244,7 @@ async function fetchStockData(ticker, env) {
 
     if (!cachedHistory && historyData) {
       cacheUpdatePromises.push(
-        setCached(cacheKV, 'history', ticker, historyData, CONFIG.DEFAULT_PERIOD_DAYS)
+        setCached(cacheKV, 'history', ticker, historyData, CONFIG.STOCK_HISTORY_DAYS)
       );
     }
 
@@ -314,8 +314,9 @@ function buildStockResponse(stockData) {
   const { price, history, summary } = stockData;
 
   // Combine 29 days of historical data with current price for accurate 30-day trend
-  // Use first 29 prices from Massive.com historical data, then append current price from Finnhub
-  const last29Days = history.closingPrices.slice(0, 29);
+  // Use last 29 trading days from historical data, then append current price from Finnhub
+  // We fetch 42 calendar days to ensure we have at least 30 trading days (stocks don't trade on weekends)
+  const last29Days = history.closingPrices.slice(-29);
   const trendPrices = [...last29Days, price.currentPrice];
   
   // Generate chart from combined price data
