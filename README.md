@@ -16,6 +16,8 @@ A powerful Discord bot that provides real-time stock information, 30-day price t
 - **🎨 Rich Embeds**: Color-coded Discord embeds (green/red/gray) with detailed information
 - **🌍 Edge Deployment**: Runs on Cloudflare's global network for ultra-low latency
 
+![](https://file.elezea.com/20251121-001354.png)
+
 ## 🎯 Quick Start
 
 ### Prerequisites
