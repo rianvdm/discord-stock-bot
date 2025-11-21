@@ -19,6 +19,74 @@ A powerful Discord bot that provides real-time stock and cryptocurrency informat
 
 ![](https://file.elezea.com/20251121-001354-2.png)
 
+## 📖 Usage
+
+### Commands
+
+#### `/stock <ticker>`
+Get comprehensive stock information for a ticker symbol.
+
+**Example:**
+```
+/stock AAPL
+```
+
+**Response includes:**
+- 💰 Current Price (when market open) or Previous Close (when market closed)
+- 🕐 Market Status (Open/Closed with real-time detection)
+- 📈 30-Day price trend (ASCII sparkline chart)
+- 📰 AI-generated news summary with sentiment
+
+#### `/crypto <symbol>`
+Get comprehensive cryptocurrency information for a crypto symbol.
+
+**Example:**
+```
+/crypto BTC
+```
+
+**Response includes:**
+- 💰 Current Price (live from Binance)
+- 🌐 24/7 Trading Status
+- 📈 30-Day price trend (ASCII sparkline chart)
+- 📰 AI-generated news summary with sentiment
+
+**Supported Symbols:**
+- Use short symbols: `BTC`, `ETH`, `DOGE`, `SOL`, `ADA`, etc.
+- Or full names: `BITCOIN`, `ETHEREUM`, `DOGECOIN`
+- Supports 25+ major cryptocurrencies
+
+#### `/help`
+Display bot usage instructions, rate limits, and data sources.
+
+### Example Interactions
+
+**Stock Example:**
+```
+User: /stock NET
+Bot: 📊 NET - Cloudflare Inc.
+     💰 Current Price: $85.50 (+1.2%)
+     📈 30-Day Trend: ▁▃▅▆█
+     $84.00 → $85.50
+     🕐 Market Status: ✅ Market Open
+     
+     📰 News & Sentiment
+     Cloudflare reported strong Q3 earnings...
+```
+
+**Crypto Example:**
+```
+User: /crypto BTC
+Bot: ₿ BTC - Bitcoin
+     💰 Current Price: $42,500.50 (+2.9%)
+     📈 30-Day Trend: ▁▃▅▇█
+     $41,300 → $42,500
+     🌐 Market Status: ✅ 24/7 Trading • Exchange: BINANCE
+     
+     📰 News & Sentiment
+     Bitcoin surged past $42,000 amid institutional adoption...
+```
+
 ## 🎯 Quick Start
 
 ### Prerequisites
@@ -123,74 +191,6 @@ A powerful Discord bot that provides real-time stock and cryptocurrency informat
 
 For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md).
 
-## 📖 Usage
-
-### Commands
-
-#### `/stock <ticker>`
-Get comprehensive stock information for a ticker symbol.
-
-**Example:**
-```
-/stock AAPL
-```
-
-**Response includes:**
-- 💰 Current Price (when market open) or Previous Close (when market closed)
-- 🕐 Market Status (Open/Closed with real-time detection)
-- 📈 30-Day price trend (ASCII sparkline chart)
-- 📰 AI-generated news summary with sentiment
-
-#### `/crypto <symbol>`
-Get comprehensive cryptocurrency information for a crypto symbol.
-
-**Example:**
-```
-/crypto BTC
-```
-
-**Response includes:**
-- 💰 Current Price (live from Binance)
-- 🌐 24/7 Trading Status
-- 📈 30-Day price trend (ASCII sparkline chart)
-- 📰 AI-generated news summary with sentiment
-
-**Supported Symbols:**
-- Use short symbols: `BTC`, `ETH`, `DOGE`, `SOL`, `ADA`, etc.
-- Or full names: `BITCOIN`, `ETHEREUM`, `DOGECOIN`
-- Supports 25+ major cryptocurrencies
-
-#### `/help`
-Display bot usage instructions, rate limits, and data sources.
-
-### Example Interactions
-
-**Stock Example:**
-```
-User: /stock NET
-Bot: 📊 NET - Cloudflare Inc.
-     💰 Current Price: $85.50 (+1.2%)
-     📈 30-Day Trend: ▁▃▅▆█
-     $84.00 → $85.50
-     🕐 Market Status: ✅ Market Open
-     
-     📰 News & Sentiment
-     Cloudflare reported strong Q3 earnings...
-```
-
-**Crypto Example:**
-```
-User: /crypto BTC
-Bot: ₿ BTC - Bitcoin
-     💰 Current Price: $42,500.50 (+2.9%)
-     📈 30-Day Trend: ▁▃▅▇█
-     $41,300 → $42,500
-     🌐 Market Status: ✅ 24/7 Trading • Exchange: BINANCE
-     
-     📰 News & Sentiment
-     Bitcoin surged past $42,000 amid institutional adoption...
-```
-
 ## 🏗️ Architecture
 
 ```
@@ -218,8 +218,8 @@ Bot: ₿ BTC - Bitcoin
          ↓          ↓          ↓              ↓
     ┌──────────┐ ┌────────┐ ┌────────┐ ┌──────────┐
     │ Massive  │ │Finnhub │ │ OpenAI │ │Cloudflare│
-    │   .com   │ │  API   │ │gpt-4o- │ │    KV    │
-    │   API    │ │        │ │ mini   │ │ Storage  │
+    │   .com   │ │  API   │ │gpt-5-  │ │    KV    │
+    │   API    │ │        │ │ search │ │ Storage  │
     └──────────┘ └────────┘ └────────┘ └──────────┘
 ```
 
