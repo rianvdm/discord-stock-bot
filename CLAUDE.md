@@ -8,7 +8,7 @@ A Discord bot providing real-time stock and cryptocurrency information with AI-p
 
 **Key Features:**
 - Real-time stock/crypto prices with 30-day trend visualization
-- AI-powered news summaries using OpenAI with web search
+- AI-powered news summaries using Perplexity SONAR with web search
 - Multi-tier caching strategy (1min/5min/1hr/8hr TTLs)
 - Rate limiting (60 seconds per user)
 - Deferred response pattern for slow API calls (prevents 3-second timeout)

@@ -107,7 +107,7 @@ You can test locally using `wrangler dev` with a tool like `ngrok` to expose you
 
 Follow the deployment steps in Phase 8 of your todo.md:
 
-1. Get API keys (Massive.com, OpenAI)
+1. Get API keys (Massive.com, Perplexity)
 2. Create KV namespaces
 3. Deploy worker: `wrangler deploy`
 4. Set Discord Interactions Endpoint URL to your worker URL
@@ -267,8 +267,8 @@ wrangler tail
 - Review worker logs for stack traces
 
 ### Partial data (no AI summary)
-- OpenAI API key might be invalid
-- OpenAI rate limits hit
+- Perplexity API key might be invalid
+- Perplexity rate limits hit
 - Network timeout (AI summary is non-critical)
 - This is graceful degradation - stock data should still appear
 
@@ -308,7 +308,7 @@ Once manual testing passes:
 
 1. **Document any issues** you found in `todo.md`
 2. **Update README.md** with production URLs and usage
-3. **Monitor costs** for first week (OpenAI, Cloudflare)
+3. **Monitor costs** for first week (Perplexity, Cloudflare)
 4. **Gather user feedback** if sharing with others
 5. **Plan improvements** from spec.md Future Enhancements
 

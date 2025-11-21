@@ -9,7 +9,7 @@ Before starting, make sure you have:
 - [x] KV namespaces created (already in wrangler.toml)
 - [x] Discord bot created with credentials (BOT_TOKEN, PUBLIC_KEY, APP_ID)
 - [ ] Massive.com API key
-- [ ] OpenAI API key
+- [ ] Perplexity API key
 
 ---
 
@@ -29,24 +29,25 @@ Massive.com (formerly Polygon.io) provides stock market data.
 
 ---
 
-## Step 2: Get OpenAI API Key
+## Step 2: Get Perplexity API Key
 
-OpenAI provides the AI-powered news summaries.
+Perplexity provides the AI-powered news summaries with web search.
 
-1. **Sign up**: Go to https://platform.openai.com/
+1. **Sign up**: Go to https://www.perplexity.ai/
 2. **Create account** or log in
 3. **Set up billing**: 
    - Go to Settings → Billing
    - Add a payment method
    - Set a spending limit (recommend $5-10/month for testing)
 4. **Create API key**:
-   - Go to API Keys → Create new secret key
+   - Go to Settings → API
+   - Create new API key
    - Name it "Discord Stock Bot"
-   - Copy the key (starts with "sk-...")
+   - Copy the key (starts with "pplx-...")
    - **IMPORTANT**: Save it immediately - you can't view it again!
 
-**Cost**: Estimated $0.01-0.05 per request with gpt-4o-mini
-- Small server (< 100 users): ~$5-20/month
+**Cost**: Estimated $0.005-0.01 per request with SONAR model
+- Small server (< 100 users): ~$3-10/month
 - Cache reduces costs significantly
 
 ---
@@ -59,7 +60,7 @@ Now we'll securely store all API keys in Cloudflare.
 1. `DISCORD_BOT_TOKEN` - From Discord Developer Portal (Phase 0)
 2. `DISCORD_PUBLIC_KEY` - From Discord Developer Portal (Phase 0)
 3. `MASSIVE_API_KEY` - From Massive.com (Step 1 above)
-4. `OPENAI_API_KEY` - From OpenAI (Step 2 above)
+4. `PERPLEXITY_API_KEY` - From Perplexity (Step 2 above)
 
 **Run these commands one at a time:**
 
@@ -79,9 +80,9 @@ wrangler secret put DISCORD_PUBLIC_KEY
 wrangler secret put MASSIVE_API_KEY
 # When prompted, paste your Massive.com API key and press Enter
 
-# Set OpenAI API Key
-wrangler secret put OPENAI_API_KEY
-# When prompted, paste your OpenAI API key and press Enter
+# Set Perplexity API Key
+wrangler secret put PERPLEXITY_API_KEY
+# When prompted, paste your Perplexity API key and press Enter
 ```
 
 **Expected output for each:**
@@ -284,10 +285,10 @@ Then test commands in Discord and watch the logs flow:
 
 ### "AI summary unavailable"
 
-**Cause**: OpenAI API issue or rate limit
+**Cause**: Perplexity API issue or rate limit
 **Fix**:
-- Check OpenAI billing is set up
-- Verify API key at https://platform.openai.com/api-keys
+- Check Perplexity billing is set up
+- Verify API key at https://www.perplexity.ai/settings/api
 - Check you haven't exceeded spending limit
 - Note: Bot still works, just without AI summary
 
@@ -326,10 +327,10 @@ Then test commands in Discord and watch the logs flow:
 - KV free tier: 100,000 reads/day, 1,000 writes/day
 - You're very unlikely to exceed this
 
-**OpenAI:**
-1. Go to https://platform.openai.com/settings/organization/billing
+**Perplexity:**
+1. Go to https://www.perplexity.ai/settings/billing
 2. Set usage limits (e.g., $10/month)
-3. Set up email notifications at 50%, 75%, 90%
+3. Monitor usage regularly
 
 **Massive.com:**
 - Free tier: 5 calls/minute
@@ -338,15 +339,15 @@ Then test commands in Discord and watch the logs flow:
 
 ### Monitor Daily (First Week)
 
-- Check OpenAI usage: https://platform.openai.com/usage
+- Check Perplexity usage: https://www.perplexity.ai/settings/api
 - Check Cloudflare metrics in dashboard
 - Review costs daily for first week
 - Adjust caching if needed
 
 **Expected costs:**
 - Very small server: $0-5/month
-- Small server (<100 users): $5-20/month
-- Mostly from OpenAI, Cloudflare likely stays free
+- Small server (<100 users): $3-15/month
+- Mostly from Perplexity, Cloudflare likely stays free
 
 ---
 
@@ -393,7 +394,7 @@ wrangler delete discord-stock-bot
 - **Cloudflare Workers Docs**: https://developers.cloudflare.com/workers/
 - **Discord Developer Docs**: https://discord.com/developers/docs
 - **Massive.com API Docs**: https://massive.com/docs
-- **OpenAI API Docs**: https://platform.openai.com/docs
+- **Perplexity API Docs**: https://docs.perplexity.ai/
 
 **Your bot files:**
 - Logs: `wrangler tail`

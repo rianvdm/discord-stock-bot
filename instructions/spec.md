@@ -140,9 +140,9 @@ Displays bot usage instructions, rate limits, and data sources.
          │                │                 │
          ↓                ↓                 ↓
     ┌──────────┐    ┌──────────┐    ┌──────────────┐
-    │ Massive  │    │ OpenAI   │    │ Cloudflare   │
-    │   .com   │    │ gpt-5-   │    │      KV      │
-    │   API    │    │ search   │    │   Storage    │
+    │ Massive  │    │Perplexi │    │ Cloudflare   │
+    │   .com   │    │  ty     │    │      KV      │
+    │   API    │    │ SONAR   │    │   Storage    │
     └──────────┘    └──────────┘    └──────────────┘
 ```
 
@@ -188,10 +188,10 @@ Displays bot usage instructions, rate limits, and data sources.
 - Retry: 1 attempt with exponential backoff
 - Fallback: Return cached data if available, else fail gracefully
 
-### 4.2 AI Summary: OpenAI
+### 4.2 AI Summary: Perplexity
 
-**Model:** `gpt-5-search-api`
-**Features:** Web search enabled for recent news
+**Model:** `sonar`
+**Features:** Web search enabled for recent news via SONAR model
 
 **Prompt Template:**
 ```
@@ -206,10 +206,9 @@ Do not make buy/sell recommendations.
 ```
 
 **Configuration:**
-- Max tokens: 10000
-- Temperature: 0.3 (more deterministic)
+- Max tokens: 800
 - Cache: 8 hours
-- Timeout: 15 seconds
+- Timeout: 30 seconds
 
 **Error Handling:**
 - If fails: Show stock data without summary + note
@@ -513,7 +512,7 @@ const [priceData, historyData, cachedSummary] = await Promise.all([
 
 **Mock External Dependencies:**
 - Massive.com API responses (success, failure, timeout)
-- OpenAI API responses
+- Perplexity API responses
 - KV storage operations
 - Discord API interactions
 
@@ -637,7 +636,7 @@ discord-stock-bot/
 │   │   └── help.js              # /help command handler
 │   ├── services/
 │   │   ├── massive.js           # Massive.com API client
-│   │   ├── openai.js            # OpenAI API client
+│   │   ├── perplexity.js        # Perplexity API client
 │   │   └── discord.js           # Discord API utilities
 │   ├── middleware/
 │   │   ├── rateLimit.js         # Rate limiting logic
@@ -742,7 +741,7 @@ discord-stock-bot/
 
 4. **API Usage**
    - Stay within Massive.com free tier (5/min)
-   - Monitor OpenAI costs
+   - Monitor Perplexity costs
    - Track cost per request
 
 5. **User Satisfaction**
@@ -773,7 +772,7 @@ discord-stock-bot/
 ### 16.2 External Services
 
 - **Massive.com:** Stock market data
-- **OpenAI:** AI-powered news summaries
+- **Perplexity:** AI-powered news summaries with SONAR model
 - **Discord:** Bot platform
 - **Cloudflare Workers:** Hosting and compute
 - **Cloudflare KV:** Data storage
@@ -789,15 +788,15 @@ discord-stock-bot/
 **Massive.com:**
 - Free: 5 API calls/minute
 
-**OpenAI:**
-- Pay per token (estimate $0.01-0.05 per request with gpt-5-search-api)
+**Perplexity:**
+- Pay per request (estimate $0.005-0.01 per request with SONAR model)
 - Cache aggressively to minimize costs
 
 **Discord:**
 - Free
 
 **Total Monthly Cost (Estimate):**
-- Small server (< 100 users): $5-20/month (primarily OpenAI)
+- Small server (< 100 users): $3-15/month (primarily Perplexity)
 - Medium server (100-1000 users): $20-100/month
 
 ---
@@ -845,7 +844,7 @@ The project is complete when:
 - Cache invalidation logic
 
 **Phase 4: AI Integration (2-3 hours)**
-- OpenAI API integration
+- Perplexity API integration
 - Prompt engineering
 - Summary caching
 
