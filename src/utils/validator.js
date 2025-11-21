@@ -1,6 +1,8 @@
 // ABOUTME: Ticker validation utility for stock symbols
 // ABOUTME: Ensures tickers are 1-10 letters only, uppercase, and properly formatted
 
+import { getTickerFromCompanyName } from '../services/massive.js';
+
 /**
  * Validates a stock ticker symbol
  * @param {any} ticker - The ticker symbol to validate
@@ -26,7 +28,13 @@ export function validateTicker(ticker) {
   }
 
   // Trim whitespace and convert to uppercase
-  const cleanedTicker = ticker.trim().toUpperCase();
+  let cleanedTicker = ticker.trim().toUpperCase();
+  
+  // Auto-correct company names to tickers (e.g., NVIDIA -> NVDA)
+  const correctedTicker = getTickerFromCompanyName(cleanedTicker);
+  if (correctedTicker) {
+    cleanedTicker = correctedTicker;
+  }
 
   // Check if empty after trimming
   if (cleanedTicker.length === 0) {

@@ -2,7 +2,7 @@
 // ABOUTME: Verifies quote fetching, historical data, error handling, and retry logic
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { fetchQuote, fetchHistoricalData, suggestTickers } from '../../src/services/massive.js';
+import { fetchQuote, fetchHistoricalData, suggestTickers, getTickerFromCompanyName } from '../../src/services/massive.js';
 
 describe('Massive.com Service', () => {
   let originalFetch;
@@ -361,6 +361,39 @@ describe('Massive.com Service', () => {
       expect(suggestTickers('nvidia')).toContain('NVDA');
       expect(suggestTickers('NvIdIa')).toContain('NVDA');
       expect(suggestTickers('apple')).toContain('AAPL');
+    });
+  });
+
+  describe('getTickerFromCompanyName', () => {
+    it('should return ticker for valid company names', () => {
+      expect(getTickerFromCompanyName('NVIDIA')).toBe('NVDA');
+      expect(getTickerFromCompanyName('APPLE')).toBe('AAPL');
+      expect(getTickerFromCompanyName('GOOGLE')).toBe('GOOGL');
+      expect(getTickerFromCompanyName('MICROSOFT')).toBe('MSFT');
+    });
+
+    it('should be case-insensitive', () => {
+      expect(getTickerFromCompanyName('nvidia')).toBe('NVDA');
+      expect(getTickerFromCompanyName('NvIdIa')).toBe('NVDA');
+      expect(getTickerFromCompanyName('apple')).toBe('AAPL');
+    });
+
+    it('should return null for unknown company names', () => {
+      expect(getTickerFromCompanyName('UNKNOWNCOMPANY')).toBeNull();
+      expect(getTickerFromCompanyName('INVALIDNAME')).toBeNull();
+    });
+
+    it('should return null for invalid input', () => {
+      expect(getTickerFromCompanyName('')).toBeNull();
+      expect(getTickerFromCompanyName(null)).toBeNull();
+      expect(getTickerFromCompanyName(undefined)).toBeNull();
+      expect(getTickerFromCompanyName(123)).toBeNull();
+    });
+
+    it('should pass through valid tickers as-is', () => {
+      expect(getTickerFromCompanyName('NVDA')).toBe('NVDA');
+      expect(getTickerFromCompanyName('AAPL')).toBe('AAPL');
+      expect(getTickerFromCompanyName('NET')).toBe('NET');
     });
   });
 

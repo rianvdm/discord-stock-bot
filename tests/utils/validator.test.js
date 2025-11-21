@@ -212,4 +212,44 @@ describe('validateTicker', () => {
       expect(result.error.length).toBeGreaterThan(0);
     });
   });
+
+  describe('Company name auto-correction', () => {
+    it('should auto-correct NVIDIA to NVDA', () => {
+      const result = validateTicker('NVIDIA');
+      expect(result.valid).toBe(true);
+      expect(result.ticker).toBe('NVDA');
+      expect(result.error).toBeNull();
+    });
+
+    it('should auto-correct APPLE to AAPL', () => {
+      const result = validateTicker('APPLE');
+      expect(result.valid).toBe(true);
+      expect(result.ticker).toBe('AAPL');
+      expect(result.error).toBeNull();
+    });
+
+    it('should auto-correct company names case-insensitively', () => {
+      const result = validateTicker('nvidia');
+      expect(result.valid).toBe(true);
+      expect(result.ticker).toBe('NVDA');
+      
+      const result2 = validateTicker('NvIdIa');
+      expect(result2.valid).toBe(true);
+      expect(result2.ticker).toBe('NVDA');
+    });
+
+    it('should auto-correct multiple company names', () => {
+      expect(validateTicker('GOOGLE').ticker).toBe('GOOGL');
+      expect(validateTicker('MICROSOFT').ticker).toBe('MSFT');
+      expect(validateTicker('AMAZON').ticker).toBe('AMZN');
+      expect(validateTicker('TESLA').ticker).toBe('TSLA');
+      expect(validateTicker('FACEBOOK').ticker).toBe('META');
+    });
+
+    it('should pass through valid tickers unchanged', () => {
+      expect(validateTicker('NVDA').ticker).toBe('NVDA');
+      expect(validateTicker('AAPL').ticker).toBe('AAPL');
+      expect(validateTicker('NET').ticker).toBe('NET');
+    });
+  });
 });

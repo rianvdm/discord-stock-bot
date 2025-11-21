@@ -170,6 +170,20 @@ export async function fetchHistoricalData(ticker, days, apiKey) {
 }
 
 /**
+ * Get ticker symbol from company name if it exists in our mappings
+ * @param {string} companyName - Company name (e.g., "NVIDIA")
+ * @returns {string|null} Ticker symbol (e.g., "NVDA") or null if not found
+ */
+export function getTickerFromCompanyName(companyName) {
+  if (!companyName || typeof companyName !== 'string') {
+    return null;
+  }
+  
+  const upperName = companyName.toUpperCase();
+  return COMMON_TICKER_CORRECTIONS[upperName] || null;
+}
+
+/**
  * Suggest alternative ticker symbols for potential typos
  * @param {string} ticker - User-entered ticker symbol
  * @returns {string[]} Array of suggested ticker symbols
