@@ -13,7 +13,7 @@ A powerful Discord bot that provides real-time stock and cryptocurrency informat
 - **📉 30-Day Trend Visualization**: Beautiful ASCII sparkline charts showing price movement
 - **🤖 AI News Summaries**: Perplexity SONAR-powered summaries of recent news with sentiment analysis
 - **⚡ Smart Caching**: Reduces API costs with intelligent multi-tier caching (1min/5min/1hr/8hr)
-- **🛡️ Rate Limiting**: Built-in rate limiting (1 query every 30 seconds per user) prevents abuse
+- **🛡️ Rate Limiting**: Built-in rate limiting (1 query every 60 seconds per user) prevents abuse
 - **🎨 Rich Embeds**: Color-coded Discord embeds (green/red/gray) with detailed information
 - **🌍 Edge Deployment**: Runs on Cloudflare's global network for ultra-low latency
 
@@ -408,9 +408,9 @@ export const CONFIG = {
 - In local development, set `DEV_MODE=true` in `.dev.vars`
 
 **Rate limit errors**
-- Users can only make 1 query every 30 seconds
-- This is by design to prevent API quota exhaustion and abuse
-- Wait 30 seconds before trying again
+- Users can only make 1 query every 60 seconds
+- This is by design to prevent API quota exhaustion (Cloudflare KV minimum TTL)
+- Wait 60 seconds before trying again
 
 **Stock data not found**
 - Verify the ticker symbol is correct (uppercase, no spaces)

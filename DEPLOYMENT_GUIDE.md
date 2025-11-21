@@ -205,7 +205,7 @@ Your bot is now live! Let's test it:
 ### Test 3: Rate Limiting
 
 1. Type `/stock NET`
-2. Immediately type `/stock GOOGL` (within 30 seconds)
+2. Immediately type `/stock GOOGL` (within 60 seconds)
 
 **Expected**:
 - First command succeeds

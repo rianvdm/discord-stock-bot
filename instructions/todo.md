@@ -222,7 +222,7 @@ Verify you have all required credentials saved:
 - [x] Implement updateRateLimit function
 - [x] Implement enforceRateLimit function
 - [x] Run tests: All rate limit tests passing
-- [x] Verify rate limit TTL is 30 seconds
+- [x] Verify rate limit TTL is 60 seconds
 
 ---
 

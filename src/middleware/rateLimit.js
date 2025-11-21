@@ -1,5 +1,5 @@
 // ABOUTME: Rate limiter middleware for enforcing per-user rate limits using Cloudflare KV
-// ABOUTME: Prevents users from making more than 1 request per 30 seconds.
+// ABOUTME: Prevents users from making more than 1 request per 60 seconds (KV minimum TTL).
 
 import { CONFIG } from '../config.js';
 

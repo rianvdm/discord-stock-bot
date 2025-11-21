@@ -237,7 +237,7 @@ Do not make buy/sell recommendations.
 
 **Key Format:** `ratelimit:{user_id}`
 **Value:** Timestamp of last request (Unix epoch ms)
-**TTL:** 30 seconds (automatic expiry)
+**TTL:** 60 seconds (automatic expiry)
 
 **Logic:**
 ```javascript
@@ -245,13 +245,13 @@ const key = `ratelimit:${userId}`;
 const lastRequest = await KV.get(key);
 const now = Date.now();
 
-if (lastRequest && (now - parseInt(lastRequest)) < 30000) {
+if (lastRequest && (now - parseInt(lastRequest)) < 60000) {
   // Rate limited
   return errorResponse(timeRemaining);
 }
 
 // Allow request, update timestamp
-await KV.put(key, now.toString(), { expirationTtl: 30 });
+await KV.put(key, now.toString(), { expirationTtl: 60 });
 ```
 
 ### 5.2 KV Namespace: Cache
