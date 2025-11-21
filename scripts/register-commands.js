@@ -10,7 +10,7 @@ import { Routes } from 'discord-api-types/v10';
 const commands = [
   {
     name: 'stock',
-    description: 'Get stock price, 7-day trend, and AI-powered news summary',
+    description: 'Get stock price, 30-day trend, and AI-powered news summary',
     options: [
       {
         name: 'ticker',

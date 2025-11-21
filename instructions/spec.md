@@ -6,7 +6,7 @@ A Discord bot deployed on Cloudflare Workers that provides stock information, pr
 
 ### 1.1 Core Features
 - Stock price lookup via slash command (previous close price)
-- 7-day price trend visualization (ASCII sparkline)
+- 30-day price trend visualization (ASCII sparkline)
 - AI-generated news summary with sentiment analysis
 - Rate limiting per user
 - Smart caching to optimize API costs
@@ -51,7 +51,7 @@ Displays bot usage instructions, rate limits, and data sources.
   - Gray: No change or markets closed
 - **Embed fields:**
   1. **Current Price:** `$XXX.XX` with percentage change
-  2. **7-Day Trend:** ASCII sparkline with start/end values
+  2. **30-Day Trend:** ASCII sparkline with start/end values
   3. **Market Status:** "Market Open" or "Last Close: [timestamp]"
   4. **AI Summary:** 2-4 sentence news summary with markdown formatting
 - **Footer:** Data sources and timestamp
@@ -62,7 +62,7 @@ Displays bot usage instructions, rate limits, and data sources.
 │ 📊 AAPL - Apple Inc.                │
 │ ──────────────────────────────────  │
 │ Current Price: $175.43 (+2.3%)      │
-│ 7-Day Trend: ▁▂▃▅▆▇█                │
+│ 30-Day Trend: ▁▂▃▅▆▇█               │
 │ $171.20 → $175.43                   │
 │                                     │
 │ 📰 News & Sentiment                 │

@@ -59,7 +59,7 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
       inline: false
     },
     {
-      name: '📈 7-Day Trend',
+      name: '📈 30-Day Trend',
       value: `\`\`\`\n${chart}\n\`\`\``,
       inline: false
     },
@@ -96,7 +96,7 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
     color: color,
     fields: fields,
     footer: {
-      text: 'Data: Massive.com • AI: OpenAI'
+      text: 'Data: Finnhub & Massive.com • AI: OpenAI'
     },
     timestamp: new Date().toISOString()
   };
@@ -109,7 +109,7 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
 export function buildHelpEmbed() {
   return {
     title: '📊 Stock Bot - Help',
-    description: 'Get stock prices (previous close), trends, and AI-powered news summaries.',
+    description: 'Get real-time stock prices, market status, trends, and AI-powered news summaries.',
     color: CONFIG.EMBED_COLOR_NEUTRAL,
     fields: [
       {
@@ -129,12 +129,12 @@ export function buildHelpEmbed() {
       },
       {
         name: '📊 Data Sources',
-        value: '**Stock Data:** Massive.com (previous day close)\n**AI Summaries:** OpenAI with web search',
+        value: '**Real-Time Quotes:** Finnhub (live prices & market status)\n**Historical Data:** Massive.com (30-day trends)\n**AI Summaries:** OpenAI with web search',
         inline: false
       },
       {
         name: '🔄 Data Freshness',
-        value: 'Previous close prices cached 5 min\nCharts cached 1 hour\nNews summaries cached 8 hours',
+        value: 'Market status cached 1 min\nStock prices cached 5 min\nCharts cached 1 hour\nNews summaries cached 8 hours',
         inline: false
       }
     ],

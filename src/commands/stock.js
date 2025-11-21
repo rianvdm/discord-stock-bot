@@ -312,10 +312,10 @@ async function fetchStockData(ticker, env) {
 function buildStockResponse(stockData) {
   const { price, history, summary } = stockData;
 
-  // Combine 6 days of historical data with current price for accurate 7-day trend
-  // Use first 6 prices from Massive.com historical data, then append current price from Finnhub
-  const last6Days = history.closingPrices.slice(0, 6);
-  const trendPrices = [...last6Days, price.currentPrice];
+  // Combine 29 days of historical data with current price for accurate 30-day trend
+  // Use first 29 prices from Massive.com historical data, then append current price from Finnhub
+  const last29Days = history.closingPrices.slice(0, 29);
+  const trendPrices = [...last29Days, price.currentPrice];
   
   // Generate chart from combined price data
   const chart = formatChartWithLabels(trendPrices);

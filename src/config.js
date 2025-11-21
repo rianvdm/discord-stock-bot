@@ -30,7 +30,7 @@ export const CONFIG = {
   CACHE_TTL_MARKET_STATUS: 60, // 1 minute (market status changes frequently)
   
   // Stock Data
-  DEFAULT_PERIOD_DAYS: 7,      // Future: make configurable per command
+  DEFAULT_PERIOD_DAYS: 30,     // Future: make configurable per command
   
   // API Timeouts (milliseconds)
   // Using deferred responses, we have up to 15 minutes

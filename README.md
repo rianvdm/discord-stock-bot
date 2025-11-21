@@ -1,6 +1,6 @@
 # 📊 Discord Stock Bot
 
-A powerful Discord bot that provides real-time stock information, 7-day price trends, and AI-powered news summaries through slash commands. Built on Cloudflare Workers for global edge deployment.
+A powerful Discord bot that provides real-time stock information, 30-day price trends, and AI-powered news summaries through slash commands. Built on Cloudflare Workers for global edge deployment.
 
 [![Add to Discord](https://img.shields.io/badge/Add%20to-Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.com/oauth2/authorize?client_id=1440825435612254280&permissions=346176&integration_type=0&scope=bot+applications.commands)
 
@@ -9,7 +9,7 @@ A powerful Discord bot that provides real-time stock information, 7-day price tr
 
 - **💰 Real-Time Stock Prices**: Live current prices when market is open, previous close when market is closed
 - **🕐 Market Status Detection**: Automatically detects market hours using real-time quote freshness
-- **📊 7-Day Trend Visualization**: Beautiful ASCII sparkline charts showing price movement
+- **📉 30-Day Trend Visualization**: Beautiful ASCII sparkline charts showing price movement
 - **🤖 AI News Summaries**: GPT-powered summaries of recent news with sentiment analysis
 - **⚡ Smart Caching**: Reduces API costs with intelligent multi-tier caching (1min/5min/1hr/8hr)
 - **🛡️ Rate Limiting**: Built-in rate limiting (1 query per minute per user) prevents abuse
@@ -135,7 +135,7 @@ Get comprehensive stock information for a ticker symbol.
 **Response includes:**
 - 💰 Current Price (when market open) or Previous Close (when market closed)
 - 🕐 Market Status (Open/Closed with real-time detection)
-- 📈 7-Day price trend (ASCII sparkline chart)
+- 📈 30-Day price trend (ASCII sparkline chart)
 - 📰 AI-generated news summary with sentiment
 
 #### `/help`
@@ -147,7 +147,7 @@ Display bot usage instructions, rate limits, and data sources.
 User: /stock NET
 Bot: 📊 NET - Cloudflare Inc.
      💰 Current Price: $85.50 (+1.2%)
-     📈 7-Day Trend: ▁▃▅▆█
+     📈 30-Day Trend: ▁▃▅▆█
      $84.00 → $85.50
      🕐 Market Status: ✅ Market Open
      

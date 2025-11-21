@@ -356,7 +356,7 @@ Your Discord Stock Bot is now live and running!
 
 **What's working:**
 - ✅ Bot responds to `/stock` with real-time data
-- ✅ 7-day trend charts (ASCII sparklines)
+- ✅ 30-day trend charts (ASCII sparklines)
 - ✅ AI-powered news summaries
 - ✅ Rate limiting prevents abuse
 - ✅ Smart caching reduces API costs

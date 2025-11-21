@@ -95,10 +95,10 @@ describe('buildStockEmbed', () => {
     expect(priceField.value).toContain('2.30%'); // Formatted with 2 decimal places
   });
 
-  it('should include 7-day trend field with chart', () => {
+  it('should include 30-day trend field with chart', () => {
     const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
 
-    const chartField = embed.fields.find(f => f.name.includes('Trend') || f.name.includes('7-Day'));
+    const chartField = embed.fields.find(f => f.name.includes('Trend') || f.name.includes('30-Day'));
     expect(chartField).toBeDefined();
     expect(chartField.value).toContain(mockChart);
   });
@@ -136,10 +136,11 @@ describe('buildStockEmbed', () => {
     expect(statusField.value).toMatch(/Last Close|Closed/i);
   });
 
-  it('should include footer with data source', () => {
+  it('should include footer with data sources', () => {
     const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
 
     expect(embed.footer).toBeDefined();
+    expect(embed.footer.text).toContain('Finnhub');
     expect(embed.footer.text).toContain('Massive.com');
   });
 
@@ -230,7 +231,9 @@ describe('buildHelpEmbed', () => {
     const embed = buildHelpEmbed();
 
     const text = JSON.stringify(embed);
+    expect(text).toContain('Finnhub');
     expect(text).toContain('Massive.com');
+    expect(text).toContain('OpenAI');
   });
 
   it('should have neutral color', () => {

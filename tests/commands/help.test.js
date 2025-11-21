@@ -93,12 +93,13 @@ describe('Help Command', () => {
     expect(allText).toContain('minute');
   });
 
-  it('should mention data sources (Massive.com and OpenAI)', async () => {
+  it('should mention data sources (Finnhub, Massive.com and OpenAI)', async () => {
     const response = await handleHelpCommand(mockInteraction, mockEnv);
     const embed = response.data.embeds[0];
     
     const allText = embed.fields.map(f => f.value).join(' ');
     
+    expect(allText).toContain('Finnhub');
     expect(allText).toContain('Massive.com');
     expect(allText).toContain('OpenAI');
   });

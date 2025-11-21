@@ -59,7 +59,7 @@ node scripts/register-commands.js
    Commands are available immediately in your test server.
 
 📋 Registered Commands:
-   • /stock - Get stock price, 7-day trend, and AI-powered news summary
+   • /stock - Get stock price, 30-day trend, and AI-powered news summary
      └─ ticker (required): Stock ticker symbol (e.g., AAPL, NET, GOOGL)
    • /help - Show bot usage instructions, rate limits, and data sources
 
@@ -72,7 +72,7 @@ node scripts/register-commands.js
 2. Click in any text channel
 3. Type `/` (forward slash)
 4. You should see your bot's commands in the menu:
-   - 📊 **/stock** - Get stock price, 7-day trend, and AI-powered news summary
+   - 📊 **/stock** - Get stock price, 30-day trend, and AI-powered news summary
    - ℹ️ **/help** - Show bot usage instructions, rate limits, and data sources
 
 **If commands don't appear:**
@@ -138,7 +138,7 @@ Once deployed:
   - **Company Name**: Apple Inc.
   - **Current Price**: $XXX.XX (+X.X%)
   - **Color**: Green (positive), Red (negative), or Gray (neutral)
-  - **7-Day Trend**: ASCII sparkline chart (▁▂▃▅▆▇█)
+  - **30-Day Trend**: ASCII sparkline chart (▁▂▃▅▆▇█)
   - **Start/End Values**: $XXX.XX → $XXX.XX
   - **AI Summary**: 2-4 sentence news summary
   - **Footer**: Data sources and timestamp
