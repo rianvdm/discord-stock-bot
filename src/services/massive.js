@@ -6,22 +6,71 @@ import { CONFIG } from '../config.js';
 const MASSIVE_BASE_URL = 'https://api.massive.com';
 
 /**
- * Common ticker misspellings and their corrections
+ * Common ticker misspellings and company name mappings
  */
 const COMMON_TICKER_CORRECTIONS = {
+  // Common typos
   'APPL': 'AAPL',
   'GOGL': 'GOOGL',
+  
+  // Company names to tickers
+  'APPLE': 'AAPL',
+  'NVIDIA': 'NVDA',
+  'GOOGLE': 'GOOGL',
+  'ALPHABET': 'GOOGL',
+  'MICROSOFT': 'MSFT',
+  'AMAZON': 'AMZN',
+  'TESLA': 'TSLA',
+  'FACEBOOK': 'META',
+  'META': 'META',
+  'NETFLIX': 'NFLX',
+  'CLOUDFLARE': 'NET',
+  'AMD': 'AMD',
+  'INTEL': 'INTC',
+  'DISNEY': 'DIS',
+  'BOEING': 'BA',
+  'VISA': 'V',
+  'JPMORGAN': 'JPM',
+  'WALMART': 'WMT',
+  'COCA-COLA': 'KO',
+  'COCACOLA': 'KO',
+  'PEPSI': 'PEP',
+  'MCDONALD': 'MCD',
+  'MCDONALDS': 'MCD',
+  'STARBUCKS': 'SBUX',
+  'NIKE': 'NKE',
+  'ORACLE': 'ORCL',
+  'SALESFORCE': 'CRM',
+  'ADOBE': 'ADBE',
+  'PAYPAL': 'PYPL',
+  'UBER': 'UBER',
+  'LYFT': 'LYFT',
+  'SPOTIFY': 'SPOT',
+  'SNAPCHAT': 'SNAP',
+  'TWITTER': 'X',
+  'AIRBNB': 'ABNB',
+  'ZOOM': 'ZM',
+  'PINTEREST': 'PINS',
+  'ROBLOX': 'RBLX',
+  'SHOPIFY': 'SHOP',
+  'SQUARE': 'SQ',
+  'STRIPE': 'PRIVATE', // Not public yet, but commonly searched
+  
+  // Existing correct tickers (pass-through)
+  'AAPL': 'AAPL',
+  'NVDA': 'NVDA',
   'GOOGL': 'GOOGL',
   'GOOG': 'GOOG',
   'MSFT': 'MSFT',
   'AMZN': 'AMZN',
   'TSLA': 'TSLA',
-  'META': 'META',
-  'NVDA': 'NVDA',
   'NFLX': 'NFLX',
-  'CLOUDFLARE': 'NET',
   'NET': 'NET',
-  'AAPL': 'AAPL',
+  'INTC': 'INTC',
+  'DIS': 'DIS',
+  'BA': 'BA',
+  'V': 'V',
+  'JPM': 'JPM',
 };
 
 /**

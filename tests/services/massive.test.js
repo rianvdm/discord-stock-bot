@@ -334,6 +334,34 @@ describe('Massive.com Service', () => {
       // Should include tickers starting with AA like AAPL
       expect(suggestions).toContain('AAPL');
     });
+
+    it('should map company names to tickers', () => {
+      expect(suggestTickers('NVIDIA')).toContain('NVDA');
+      expect(suggestTickers('APPLE')).toContain('AAPL');
+      expect(suggestTickers('GOOGLE')).toContain('GOOGL');
+      expect(suggestTickers('ALPHABET')).toContain('GOOGL');
+      expect(suggestTickers('MICROSOFT')).toContain('MSFT');
+      expect(suggestTickers('AMAZON')).toContain('AMZN');
+      expect(suggestTickers('TESLA')).toContain('TSLA');
+      expect(suggestTickers('FACEBOOK')).toContain('META');
+      expect(suggestTickers('NETFLIX')).toContain('NFLX');
+    });
+
+    it('should map more company names to tickers', () => {
+      expect(suggestTickers('DISNEY')).toContain('DIS');
+      expect(suggestTickers('INTEL')).toContain('INTC');
+      expect(suggestTickers('NIKE')).toContain('NKE');
+      expect(suggestTickers('STARBUCKS')).toContain('SBUX');
+      expect(suggestTickers('WALMART')).toContain('WMT');
+      expect(suggestTickers('COCA-COLA')).toContain('KO');
+      expect(suggestTickers('COCACOLA')).toContain('KO');
+    });
+
+    it('should handle company names case-insensitively', () => {
+      expect(suggestTickers('nvidia')).toContain('NVDA');
+      expect(suggestTickers('NvIdIa')).toContain('NVDA');
+      expect(suggestTickers('apple')).toContain('AAPL');
+    });
   });
 
   describe('exponential backoff', () => {
