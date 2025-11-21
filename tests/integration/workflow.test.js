@@ -125,6 +125,46 @@ describe('Integration: Complete Bot Workflows', () => {
         });
       }
 
+      // Finnhub quote endpoint (real-time price/market status)
+      if (url.includes('finnhub.io/api/v1/quote')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            c: 177.25,  // current price
+            d: 1.82,    // change
+            dp: 1.04,   // percent change
+            h: 178.50,  // high
+            l: 176.00,  // low
+            o: 176.50,  // open
+            pc: 175.43, // previous close
+            t: Math.floor(Date.now() / 1000), // timestamp (now = market open)
+          }),
+        });
+      }
+
+      // Finnhub company profile endpoint
+      if (url.includes('finnhub.io/api/v1/stock/profile2')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            ticker: 'AAPL',
+            name: 'Apple Inc.',
+            country: 'US',
+            currency: 'USD',
+            exchange: 'NASDAQ',
+            ipo: '1980-12-12',
+            marketCapitalization: 2800000,
+            shareOutstanding: 15821.9,
+            logo: 'https://static.finnhub.io/logo/87cb30d8-80df-11ea-8951-00000000092a.png',
+            phone: '14089961010',
+            weburl: 'https://www.apple.com/',
+            finnhubIndustry: 'Technology',
+          }),
+        });
+      }
+
       // OpenAI API
       if (url.includes('api.openai.com')) {
         return Promise.resolve({
@@ -163,10 +203,11 @@ describe('Integration: Complete Bot Workflows', () => {
       // Mock rate limit (first request - allow)
       mockKV.get.mockResolvedValueOnce(null); // No previous request
 
-      // Mock cache misses
-      mockKV.get.mockResolvedValueOnce(null); // Price cache miss
+      // Mock cache misses (4 parallel cache checks in fetchStockData)
       mockKV.get.mockResolvedValueOnce(null); // History cache miss
       mockKV.get.mockResolvedValueOnce(null); // Summary cache miss
+      mockKV.get.mockResolvedValueOnce(null); // Market status cache miss
+      mockKV.get.mockResolvedValueOnce(null); // Company profile cache miss
 
       // Mock cache writes (successful)
       mockKV.put.mockResolvedValue(undefined);
@@ -204,6 +245,9 @@ describe('Integration: Complete Bot Workflows', () => {
       // Wait for background processing to complete
       await mockContext.waitUntil.mock.calls[0][0];
 
+      // Wait a bit for fire-and-forget cache updates to complete
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       // Verify: Rate limit was checked and updated
       expect(mockKV.get).toHaveBeenCalledWith(expect.stringContaining('ratelimit:user123'));
       expect(mockKV.put).toHaveBeenCalledWith(
@@ -227,6 +271,11 @@ describe('Integration: Complete Bot Workflows', () => {
         expect.stringContaining('stock:history:AAPL'),
         expect.any(String),
         expect.objectContaining({ expirationTtl: 3600 }) // 1 hour
+      );
+      expect(mockKV.put).toHaveBeenCalledWith(
+        expect.stringContaining('stock:company_profile:AAPL'),
+        expect.any(String),
+        expect.objectContaining({ expirationTtl: 259200 }) // 3 days
       );
       
       // Note: AI summary cache is only written if OpenAI succeeds

@@ -633,8 +633,11 @@ describe('Stock Command - Structure', () => {
         if (key === 'ratelimit:user_cache_hit') {
           return Promise.resolve(null);
         }
-        if (key === 'stock:price:GOOGL') {
+        if (key === 'stock:market_status:GOOGL') {
           return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key === 'stock:company_profile:GOOGL') {
+          return Promise.resolve(JSON.stringify({ name: 'Alphabet Inc.' }));
         }
         if (key.startsWith('stock:history:GOOGL')) {
           return Promise.resolve(JSON.stringify(cachedHistory));
@@ -754,8 +757,11 @@ describe('Stock Command - Structure', () => {
         if (key === 'ratelimit:user_full_response') {
           return Promise.resolve(null);
         }
-        if (key === 'stock:price:AAPL') {
+        if (key === 'stock:market_status:AAPL') {
           return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key === 'stock:company_profile:AAPL') {
+          return Promise.resolve(JSON.stringify({ name: 'Apple Inc.' }));
         }
         if (key.startsWith('stock:history:AAPL')) {
           return Promise.resolve(JSON.stringify(cachedHistory));
@@ -818,8 +824,11 @@ describe('Stock Command - Structure', () => {
         if (key === 'ratelimit:user_no_ai') {
           return Promise.resolve(null);
         }
-        if (key === 'stock:price:NET') {
+        if (key === 'stock:market_status:NET') {
           return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key === 'stock:company_profile:NET') {
+          return Promise.resolve(JSON.stringify({ name: 'Cloudflare Inc.' }));
         }
         if (key.startsWith('stock:history:NET')) {
           return Promise.resolve(JSON.stringify(cachedHistory));
@@ -880,8 +889,11 @@ describe('Stock Command - Structure', () => {
         if (key === 'ratelimit:user_chart') {
           return Promise.resolve(null);
         }
-        if (key === 'stock:price:TSLA') {
+        if (key === 'stock:market_status:TSLA') {
           return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key === 'stock:company_profile:TSLA') {
+          return Promise.resolve(JSON.stringify({ name: 'Tesla Inc.' }));
         }
         if (key.startsWith('stock:history:TSLA')) {
           return Promise.resolve(JSON.stringify(cachedHistory));
@@ -937,8 +949,11 @@ describe('Stock Command - Structure', () => {
         if (key === 'ratelimit:user_positive') {
           return Promise.resolve(null);
         }
-        if (key === 'stock:price:MSFT') {
+        if (key === 'stock:market_status:MSFT') {
           return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key === 'stock:company_profile:MSFT') {
+          return Promise.resolve(JSON.stringify({ name: 'Microsoft Corp.' }));
         }
         if (key.startsWith('stock:history:MSFT')) {
           return Promise.resolve(JSON.stringify(cachedHistory));
@@ -987,8 +1002,11 @@ describe('Stock Command - Structure', () => {
         if (key === 'ratelimit:user_negative') {
           return Promise.resolve(null);
         }
-        if (key === 'stock:price:AMD') {
+        if (key === 'stock:market_status:AMD') {
           return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key === 'stock:company_profile:AMD') {
+          return Promise.resolve(JSON.stringify({ name: 'Advanced Micro Devices Inc.' }));
         }
         if (key.startsWith('stock:history:AMD')) {
           return Promise.resolve(JSON.stringify(cachedHistory));
@@ -1037,8 +1055,11 @@ describe('Stock Command - Structure', () => {
         if (key === 'ratelimit:user_market_hours') {
           return Promise.resolve(null);
         }
-        if (key === 'stock:price:GOOGL') {
+        if (key === 'stock:market_status:GOOGL') {
           return Promise.resolve(JSON.stringify(cachedPrice));
+        }
+        if (key === 'stock:company_profile:GOOGL') {
+          return Promise.resolve(JSON.stringify({ name: 'Alphabet Inc.' }));
         }
         if (key.startsWith('stock:history:GOOGL')) {
           return Promise.resolve(JSON.stringify(cachedHistory));

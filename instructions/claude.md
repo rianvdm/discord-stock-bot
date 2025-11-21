@@ -1,6 +1,6 @@
 # For each session
 
-1. CRITICAL FIRST STEP: Read `spec.md`, then `prompt_plan.md`, and finally `todo.md`. Identify any prompts / items not marked as completed.
+1. CRITICAL FIRST STEP: Read `readme.md`.
 2. For each incomplete prompt:
     - Double-check if it's truly unfinished (if uncertain, ask for clarification).
     - If you confirm it's already done, skip it.

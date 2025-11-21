@@ -312,8 +312,13 @@ async function fetchStockData(ticker, env) {
 function buildStockResponse(stockData) {
   const { price, history, summary } = stockData;
 
-  // Generate chart from historical closing prices
-  const chart = formatChartWithLabels(history.closingPrices);
+  // Combine 6 days of historical data with current price for accurate 7-day trend
+  // Use first 6 prices from Massive.com historical data, then append current price from Finnhub
+  const last6Days = history.closingPrices.slice(0, 6);
+  const trendPrices = [...last6Days, price.currentPrice];
+  
+  // Generate chart from combined price data
+  const chart = formatChartWithLabels(trendPrices);
 
   // Price data now always comes from Finnhub
   // Market open status is included in price data
