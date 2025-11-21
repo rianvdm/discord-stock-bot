@@ -10,7 +10,7 @@ A Discord bot providing real-time stock and cryptocurrency information with AI-p
 - Real-time stock/crypto prices with 30-day trend visualization
 - AI-powered news summaries using Perplexity SONAR with web search
 - Multi-tier caching strategy (1min/5min/1hr/8hr TTLs)
-- Rate limiting (60 seconds per user)
+- Rate limiting (30 seconds per user)
 - Deferred response pattern for slow API calls (prevents 3-second timeout)
 
 ## Development Workflow
@@ -303,7 +303,7 @@ export default {
 
 **Important Constraints:**
 - Workers have a 50ms CPU time limit (use async I/O)
-- KV has eventual consistency (usually < 60 seconds)
+- KV has eventual consistency (usually < 60 seconds globally)
 - Use `ctx.waitUntil()` for non-blocking background tasks
 - Deferred responses allow up to 15 minutes for processing
 
@@ -370,7 +370,7 @@ wrangler kv:key get --binding=CACHE "stock:price:AAPL"  # Get specific cached va
 - Ensure all secrets are set: `wrangler secret list`
 
 **Rate limit errors:**
-- By design: 60 seconds per user (Cloudflare KV minimum TTL requirement)
+- By design: 30 seconds per user
 - Check rate limit logic in `src/middleware/rateLimit.js`
 
 **API timeouts:**

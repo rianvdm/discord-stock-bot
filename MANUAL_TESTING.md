@@ -181,7 +181,7 @@ Try: `/stock VERYLONGTICKER123`
 ## Step 7: Test Rate Limiting
 
 1. Type `/stock AAPL`
-2. **Immediately** type `/stock NET` (within 60 seconds)
+2. **Immediately** type `/stock NET` (within 30 seconds)
 3. Watch for rate limit response
 
 **Expected Result:**
@@ -191,7 +191,7 @@ Try: `/stock VERYLONGTICKER123`
   - Ephemeral message: "You're querying too quickly! Please wait XX seconds."
   - Shows exact seconds remaining
 
-4. Wait 60+ seconds
+4. Wait 30+ seconds
 5. Try `/stock GOOGL` again
 
 **Expected Result:**

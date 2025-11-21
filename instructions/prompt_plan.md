@@ -648,10 +648,10 @@ Complete testing and prepare for production deployment with Discord integration.
 
 20. Test rate limiting:
     - Type /stock NET
-    - Immediately type /stock AAPL (within 60 seconds)
+    - Immediately type /stock AAPL (within 30 seconds)
     - Should get ⏰ emoji reaction
     - Should get ephemeral "wait XX seconds" message
-    - Wait 60 seconds, try again - should work
+    - Wait 30 seconds, try again - should work
 
 21. Test caching:
     - Type /stock GOOGL (first query)
