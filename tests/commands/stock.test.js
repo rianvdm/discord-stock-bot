@@ -915,7 +915,7 @@ describe('Stock Command - Structure', () => {
       expect(chartField).toBeDefined();
       expect(chartField.value).toContain('$220.00');
       expect(chartField.value).toContain('$240.00');
-      expect(chartField.value).toContain('→');
+      // Prices are now aligned (left and right) without arrow
     });
 
     it('should use green color for positive price change', async () => {

@@ -93,7 +93,7 @@ describe('generateSparkline', () => {
 });
 
 describe('formatChartWithLabels', () => {
-  it('should format chart with start and end price labels', () => {
+  it('should format chart with start, end, low, and high price labels', () => {
     const prices = [171.20, 172.45, 173.12, 174.21, 175.43];
     const result = formatChartWithLabels(prices);
     
@@ -101,19 +101,24 @@ describe('formatChartWithLabels', () => {
     expect(result).toMatch(/[▁▂▃▄▅▆▇█]+/);
     expect(result).toContain('$171.20');
     expect(result).toContain('$175.43');
-    expect(result).toContain('→');
+    expect(result).toContain('Low:');
+    expect(result).toContain('High:');
   });
 
   it('should format with proper structure', () => {
     const prices = [100, 110, 120];
     const result = formatChartWithLabels(prices);
     
-    // Should have sparkline on first line, labels on second
+    // Should have sparkline on first line, aligned prices on second line, low/high on third line
     const lines = result.split('\n');
-    expect(lines.length).toBe(2);
+    expect(lines.length).toBe(3);
     expect(lines[0]).toMatch(/[▁▂▃▄▅▆▇█]+/);
     expect(lines[1]).toContain('$100.00');
     expect(lines[1]).toContain('$120.00');
+    expect(lines[2]).toContain('Low:');
+    expect(lines[2]).toContain('$100.00');
+    expect(lines[2]).toContain('High:');
+    expect(lines[2]).toContain('$120.00');
   });
 
   it('should handle downward trend labels correctly', () => {
@@ -122,6 +127,10 @@ describe('formatChartWithLabels', () => {
     
     expect(result).toContain('$200.50');
     expect(result).toContain('$180.00');
+    // Low should be 180.00, High should be 200.50
+    const lines = result.split('\n');
+    expect(lines[2]).toContain('Low: $180.00');
+    expect(lines[2]).toContain('High: $200.50');
   });
 
   it('should format prices with two decimal places', () => {
@@ -144,7 +153,8 @@ describe('formatChartWithLabels', () => {
     const prices = [];
     const result = formatChartWithLabels(prices);
     
-    expect(result).toBe('\n$0.00 → $0.00');
+    // Empty sparkline results in just the start price (which equals end price)
+    expect(result).toBe('\n$0.00\nLow: $0.00 • High: $0.00');
   });
 
   it('should handle negative prices', () => {
@@ -153,13 +163,32 @@ describe('formatChartWithLabels', () => {
     
     expect(result).toContain('-$10.50');
     expect(result).toContain('$10.50');
+    // Verify low/high are present
+    expect(result).toContain('Low: -$10.50');
+    expect(result).toContain('High: $10.50');
   });
 
-  it('should show arrow between start and end values', () => {
+  it('should align start price left and end price right on line 2', () => {
     const prices = [50, 60, 70];
     const result = formatChartWithLabels(prices);
     
     const lines = result.split('\n');
-    expect(lines[1]).toMatch(/\$\d+\.\d{2}\s+→\s+\$\d+\.\d{2}/);
+    expect(lines.length).toBe(3);
+    
+    // Line 0 is sparkline, line 1 is aligned prices
+    const sparklineLength = lines[0].length;
+    const priceLine = lines[1];
+    
+    // Start price should be at the beginning
+    expect(priceLine).toMatch(/^\$50\.00/);
+    // End price should be at the end
+    expect(priceLine).toMatch(/\$70\.00$/);
+    // When labels are too long, they're separated by single space; otherwise padded to match sparkline
+    const totalLabelLength = '$50.00'.length + '$70.00'.length;
+    if (totalLabelLength >= sparklineLength) {
+      expect(priceLine).toContain(' ');
+    } else {
+      expect(priceLine.length).toBe(sparklineLength);
+    }
   });
 });
