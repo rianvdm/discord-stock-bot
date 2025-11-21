@@ -96,7 +96,7 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
     color: color,
     fields: fields,
     footer: {
-      text: 'Data: Finnhub & Massive.com • AI: OpenAI'
+      text: 'Data: Finnhub & Massive.com • AI: Perplexity'
     },
     timestamp: new Date().toISOString()
   };
@@ -173,7 +173,7 @@ export function buildCryptoEmbed(cryptoData, chart, aiSummary) {
     color: color,
     fields: fields,
     footer: {
-      text: 'Data: Finnhub & Massive.com • AI: OpenAI'
+      text: 'Data: Finnhub & Massive.com • AI: Perplexity'
     },
     timestamp: new Date().toISOString()
   };
@@ -211,7 +211,7 @@ export function buildHelpEmbed() {
       },
       {
         name: '📊 Data Sources',
-        value: '**Real-Time Quotes:** Finnhub (live prices & market status)\n**Historical Data:** Massive.com (30-day trends)\n**AI Summaries:** OpenAI with web search',
+        value: '**Real-Time Quotes:** Finnhub (live prices & market status)\n**Historical Data:** Massive.com (30-day trends)\n**AI Summaries:** Perplexity SONAR with web search',
         inline: false
       },
       {

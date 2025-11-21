@@ -13,7 +13,7 @@
  * @property {number} STOCK_HISTORY_DAYS - Calendar days to fetch for stocks to get ~30 trading days
  * @property {number} CRYPTO_HISTORY_DAYS - Calendar days to fetch for crypto (trades 24/7)
  * @property {number} MASSIVE_TIMEOUT - API timeout for Massive.com requests in milliseconds
- * @property {number} OPENAI_TIMEOUT - API timeout for OpenAI requests in milliseconds
+ * @property {number} OPENAI_TIMEOUT - API timeout for OpenAI requests in milliseconds (deprecated, use PERPLEXITY_TIMEOUT)
  * @property {number} PERPLEXITY_TIMEOUT - API timeout for Perplexity requests in milliseconds
  * @property {string[]} SUPPORTED_MARKETS - Supported stock markets (currently US only)
  * @property {number} CHART_HEIGHT - ASCII sparkline chart height (number of characters)
