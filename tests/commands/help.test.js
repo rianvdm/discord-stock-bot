@@ -82,15 +82,15 @@ describe('Help Command', () => {
     expect(allText).toContain('/help');
   });
 
-  it('should include rate limit information (1 per minute)', async () => {
+  it('should include rate limit information (1 every 30 seconds)', async () => {
     const response = await handleHelpCommand(mockInteraction, mockEnv);
     const embed = response.data.embeds[0];
     
     const allText = embed.fields.map(f => f.value).join(' ').toLowerCase();
     
-    // Should mention "1" and "minute" in relation to rate limiting
+    // Should mention "1" and "30 seconds" in relation to rate limiting
     expect(allText).toContain('1');
-    expect(allText).toContain('minute');
+    expect(allText).toContain('30 seconds');
   });
 
   it('should mention data sources (Finnhub, Massive.com and OpenAI)', async () => {

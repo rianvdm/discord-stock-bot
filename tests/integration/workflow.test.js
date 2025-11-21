@@ -253,7 +253,7 @@ describe('Integration: Complete Bot Workflows', () => {
       expect(mockKV.put).toHaveBeenCalledWith(
         expect.stringContaining('ratelimit:user123'),
         expect.any(String),
-        expect.objectContaining({ expirationTtl: 60 })
+        expect.objectContaining({ expirationTtl: 30 })
       );
 
       // Verify: Caches were checked
@@ -511,7 +511,7 @@ describe('Integration: Complete Bot Workflows', () => {
       });
 
       const now = Date.now();
-      const recentRequest = (now - 30000).toString(); // 30 seconds ago (within 60s window)
+      const recentRequest = (now - 15000).toString(); // 15 seconds ago (within 30s window)
 
       // Mock rate limit check (hit - recent request found)
       mockKV.get.mockResolvedValueOnce(recentRequest);

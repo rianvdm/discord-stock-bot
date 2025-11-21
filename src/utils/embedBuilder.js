@@ -124,7 +124,7 @@ export function buildHelpEmbed() {
       },
       {
         name: '⏱️ Rate Limits',
-        value: 'You can query **1 stock per minute** to keep the bot running smoothly.',
+        value: 'You can query **1 stock every 30 seconds** to keep the bot running smoothly.',
         inline: false
       },
       {

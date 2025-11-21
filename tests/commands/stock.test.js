@@ -244,7 +244,7 @@ describe('Stock Command - Structure', () => {
       }
     });
 
-    it('should block second request within 60 seconds', async () => {
+    it('should block second request within 30 seconds', async () => {
       const mockInteraction = {
         id: '123456789',
         type: 2,
@@ -257,9 +257,9 @@ describe('Stock Command - Structure', () => {
         user: { id: 'user456', username: 'testuser2' }
       };
 
-      // Mock: user made request 30 seconds ago
-      const thirtySecondsAgo = Date.now() - 30000;
-      mockKV.get.mockResolvedValue(thirtySecondsAgo.toString());
+      // Mock: user made request 15 seconds ago
+      const fifteenSecondsAgo = Date.now() - 15000;
+      mockKV.get.mockResolvedValue(fifteenSecondsAgo.toString());
 
       const response = await handleStockCommand(mockInteraction, mockEnv);
 
@@ -268,10 +268,10 @@ describe('Stock Command - Structure', () => {
       expect(response.data.flags).toBe(MessageFlags.EPHEMERAL);
       expect(response.data.content).toContain('⏰');
       expect(response.data.content.toLowerCase()).toContain('wait');
-      expect(response.data.content).toContain('30'); // Approximately 30 seconds remaining
+      expect(response.data.content).toContain('15'); // Approximately 15 seconds remaining
     });
 
-    it('should allow request after 60 seconds have passed', async () => {
+    it('should allow request after 30 seconds have passed', async () => {
       const mockInteraction = {
         id: '123456789',
         type: 2,
@@ -284,9 +284,9 @@ describe('Stock Command - Structure', () => {
         user: { id: 'user789', username: 'testuser3' }
       };
 
-      // Mock: user made request 65 seconds ago
-      const sixtyFiveSecondsAgo = Date.now() - 65000;
-      mockKV.get.mockResolvedValue(sixtyFiveSecondsAgo.toString());
+      // Mock: user made request 35 seconds ago
+      const thirtyFiveSecondsAgo = Date.now() - 35000;
+      mockKV.get.mockResolvedValue(thirtyFiveSecondsAgo.toString());
       mockKV.put.mockResolvedValue(undefined);
 
       // Should pass rate limit check
@@ -325,7 +325,7 @@ describe('Stock Command - Structure', () => {
       // Mock: User A has rate limit, User B does not
       mockKV.get.mockImplementation((key) => {
         if (key === 'ratelimit:userA') {
-          return Promise.resolve((Date.now() - 30000).toString());
+          return Promise.resolve((Date.now() - 15000).toString());
         }
         return Promise.resolve(null);
       });

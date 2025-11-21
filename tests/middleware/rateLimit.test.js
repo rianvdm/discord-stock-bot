@@ -36,7 +36,21 @@ describe('Rate Limiter', () => {
       expect(mockKV.get).toHaveBeenCalledWith('ratelimit:user123');
     });
 
-    it('should block request within 60 seconds', async () => {
+    it('should block request within 30 seconds', async () => {
+      const lastRequest = Date.now();
+      vi.setSystemTime(lastRequest);
+      mockKV.get.mockResolvedValue(lastRequest.toString());
+      
+      // Move time forward 15 seconds
+      vi.setSystemTime(lastRequest + 15000);
+
+      const result = await checkRateLimit(mockKV, 'user123');
+
+      expect(result.allowed).toBe(false);
+      expect(result.timeRemaining).toBe(15);
+    });
+
+    it('should allow request after 30 seconds', async () => {
       const lastRequest = Date.now();
       vi.setSystemTime(lastRequest);
       mockKV.get.mockResolvedValue(lastRequest.toString());
@@ -46,31 +60,17 @@ describe('Rate Limiter', () => {
 
       const result = await checkRateLimit(mockKV, 'user123');
 
-      expect(result.allowed).toBe(false);
-      expect(result.timeRemaining).toBe(30);
-    });
-
-    it('should allow request after 60 seconds', async () => {
-      const lastRequest = Date.now();
-      vi.setSystemTime(lastRequest);
-      mockKV.get.mockResolvedValue(lastRequest.toString());
-      
-      // Move time forward 60 seconds
-      vi.setSystemTime(lastRequest + 60000);
-
-      const result = await checkRateLimit(mockKV, 'user123');
-
       expect(result.allowed).toBe(true);
       expect(result.timeRemaining).toBe(0);
     });
 
-    it('should allow request after more than 60 seconds', async () => {
+    it('should allow request after more than 30 seconds', async () => {
       const lastRequest = Date.now();
       vi.setSystemTime(lastRequest);
       mockKV.get.mockResolvedValue(lastRequest.toString());
       
-      // Move time forward 65 seconds
-      vi.setSystemTime(lastRequest + 65000);
+      // Move time forward 35 seconds
+      vi.setSystemTime(lastRequest + 35000);
 
       const result = await checkRateLimit(mockKV, 'user123');
 
@@ -83,8 +83,8 @@ describe('Rate Limiter', () => {
       vi.setSystemTime(lastRequest);
       mockKV.get.mockResolvedValue(lastRequest.toString());
       
-      // Move time forward 45 seconds
-      vi.setSystemTime(lastRequest + 45000);
+      // Move time forward 15 seconds
+      vi.setSystemTime(lastRequest + 15000);
 
       const result = await checkRateLimit(mockKV, 'user123');
 
@@ -133,7 +133,7 @@ describe('Rate Limiter', () => {
   });
 
   describe('updateRateLimit', () => {
-    it('should store current timestamp with 60s TTL', async () => {
+    it('should store current timestamp with 30s TTL', async () => {
       const now = Date.now();
       vi.setSystemTime(now);
 
@@ -142,7 +142,7 @@ describe('Rate Limiter', () => {
       expect(mockKV.put).toHaveBeenCalledWith(
         'ratelimit:user123',
         now.toString(),
-        { expirationTtl: 60 }
+        { expirationTtl: 30 }
       );
     });
 
@@ -160,12 +160,12 @@ describe('Rate Limiter', () => {
       expect(mockKV.put).toHaveBeenCalledWith(
         'ratelimit:user123',
         expect.any(String),
-        { expirationTtl: 60 }
+        { expirationTtl: 30 }
       );
       expect(mockKV.put).toHaveBeenCalledWith(
         'ratelimit:user456',
         expect.any(String),
-        { expirationTtl: 60 }
+        { expirationTtl: 30 }
       );
     });
   });
@@ -182,7 +182,7 @@ describe('Rate Limiter', () => {
       expect(mockKV.put).toHaveBeenCalledWith(
         'ratelimit:user123',
         now.toString(),
-        { expirationTtl: 60 }
+        { expirationTtl: 30 }
       );
     });
 
@@ -191,14 +191,14 @@ describe('Rate Limiter', () => {
       vi.setSystemTime(lastRequest);
       mockKV.get.mockResolvedValue(lastRequest.toString());
       
-      // Move time forward 30 seconds
-      vi.setSystemTime(lastRequest + 30000);
+      // Move time forward 15 seconds
+      vi.setSystemTime(lastRequest + 15000);
 
       const result = await enforceRateLimit(mockKV, 'user123');
 
       expect(result).not.toBeNull();
       expect(result.rateLimited).toBe(true);
-      expect(result.timeRemaining).toBe(30);
+      expect(result.timeRemaining).toBe(15);
       expect(mockKV.put).not.toHaveBeenCalled();
     });
 
@@ -207,8 +207,8 @@ describe('Rate Limiter', () => {
       vi.setSystemTime(lastRequest);
       mockKV.get.mockResolvedValue(lastRequest.toString());
       
-      // Move time forward 60 seconds
-      vi.setSystemTime(lastRequest + 60000);
+      // Move time forward 30 seconds
+      vi.setSystemTime(lastRequest + 30000);
 
       const result = await enforceRateLimit(mockKV, 'user123');
 
