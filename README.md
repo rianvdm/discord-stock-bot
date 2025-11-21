@@ -17,7 +17,7 @@ A powerful Discord bot that provides real-time stock and cryptocurrency informat
 - **🎨 Rich Embeds**: Color-coded Discord embeds (green/red/gray) with detailed information
 - **🌍 Edge Deployment**: Runs on Cloudflare's global network for ultra-low latency
 
-![](https://file.elezea.com/20251121-001354-2.png)
+![](https://file.elezea.com/20251121-001359.png)
 
 ## 📖 Usage
 
