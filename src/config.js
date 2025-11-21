@@ -37,6 +37,7 @@ export const CONFIG = {
   MASSIVE_TIMEOUT: 10000,   // 10 seconds for stock data
   OPENAI_TIMEOUT: 30000,    // 30 seconds for AI summary with web search
   FINNHUB_TIMEOUT: 5000,    // 5 seconds for real-time market status check
+  COMMAND_TIMEOUT: 45000,   // 45 seconds overall command timeout (sends error if exceeded)
   
   // Market Configuration
   SUPPORTED_MARKETS: ['US'],   // Future: add international

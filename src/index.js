@@ -5,6 +5,7 @@ import { verifyDiscordRequest, createDeferredResponse, sendFollowupMessage } fro
 import { handleStockCommand } from './commands/stock.js';
 import { handleHelpCommand } from './commands/help.js';
 import { BotError, ErrorTypes, formatErrorResponse } from './utils/errorHandler.js';
+import { CONFIG } from './config.js';
 
 /**
  * Main Cloudflare Worker handler
@@ -96,7 +97,22 @@ export default {
             // Process command in background and send follow-up
             ctx.waitUntil((async () => {
               try {
-                const stockResponse = await handleStockCommand(interaction, env);
+                // Race the command against a timeout to prevent hanging
+                const timeoutPromise = new Promise((_, reject) => {
+                  setTimeout(() => {
+                    reject(new BotError(
+                      ErrorTypes.API_FAILURE,
+                      'Request timed out. The stock data is taking too long to fetch. Please try again in a moment.',
+                      null,
+                      { timeout: CONFIG.COMMAND_TIMEOUT }
+                    ));
+                  }, CONFIG.COMMAND_TIMEOUT);
+                });
+
+                const stockResponse = await Promise.race([
+                  handleStockCommand(interaction, env),
+                  timeoutPromise
+                ]);
                 
                 // Send follow-up message with the actual stock data
                 await sendFollowupMessage(
@@ -112,12 +128,15 @@ export default {
                   duration: `${duration}ms`,
                 });
               } catch (error) {
+                const duration = Date.now() - startTime;
                 console.error('[ERROR] Stock command background processing failed', {
                   error: error.message,
                   stack: error.stack,
                   errorType: error.type,
                   isBotError: error instanceof BotError,
                   errorConstructor: error.constructor.name,
+                  duration: `${duration}ms`,
+                  timedOut: error.metadata?.timeout ? true : false,
                 });
                 
                 // Send error as follow-up
