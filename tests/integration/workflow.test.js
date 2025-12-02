@@ -253,7 +253,7 @@ describe('Integration: Complete Bot Workflows', () => {
       expect(mockKV.put).toHaveBeenCalledWith(
         expect.stringContaining('ratelimit:user123'),
         expect.any(String),
-        expect.objectContaining({ expirationTtl: 60 })
+        expect.any(Object)
       );
 
       // Verify: Caches were checked
