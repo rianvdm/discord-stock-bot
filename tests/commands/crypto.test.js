@@ -208,19 +208,20 @@ describe('Crypto Command - Structure', () => {
         user: { id: 'user123', username: 'testuser' }
       };
 
-      // Mock that user is rate limited (within 30 seconds)
-      const rateLimitTimestamp = Date.now();
-      mockKV.get.mockResolvedValue(rateLimitTimestamp.toString());
+      // Mock that user is rate limited (5 requests in the last 60 seconds)
+      const now = Date.now();
+      const timestamps = [now - 50000, now - 40000, now - 30000, now - 20000, now - 10000];
+      mockKV.get.mockResolvedValue(JSON.stringify(timestamps));
       mockKV.put.mockResolvedValue(undefined);
 
       const result = await handleCryptoCommand(mockInteraction, mockEnv);
-      
+
       expect(result.type).toBe(InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE);
       expect(result.data.flags).toBe(MessageFlags.EPHEMERAL);
       expect(result.data.content).toContain('too quickly');
     });
 
-    it('should allow request when rate limit has expired', async () => {
+    it('should allow request when under rate limit', async () => {
       const mockInteraction = {
         id: '123456789',
         type: 2,
@@ -233,9 +234,10 @@ describe('Crypto Command - Structure', () => {
         user: { id: 'user123', username: 'testuser' }
       };
 
-      // Mock that user's last request was more than 60 seconds ago
-      const oldTimestamp = Date.now() - 61000;
-      mockKV.get.mockResolvedValue(oldTimestamp.toString());
+      // Mock that user has made 3 requests (under the 5 limit)
+      const now = Date.now();
+      const timestamps = [now - 30000, now - 20000, now - 10000];
+      mockKV.get.mockResolvedValue(JSON.stringify(timestamps));
       mockKV.put.mockResolvedValue(undefined);
 
       try {

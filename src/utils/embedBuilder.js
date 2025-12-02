@@ -206,7 +206,7 @@ export function buildHelpEmbed() {
       },
       {
         name: '⏱️ Rate Limits',
-        value: 'You can query **1 asset every 60 seconds** to keep the bot running smoothly.',
+        value: 'You can query **5 assets per minute** to keep the bot running smoothly.',
         inline: false
       },
       {

@@ -5,7 +5,8 @@
  * Global configuration constants for the Discord Stock Bot
  * 
  * @constant {Object} CONFIG
- * @property {number} RATE_LIMIT_SECONDS - Rate limit window in seconds (1 query per user per 60 seconds)
+ * @property {number} RATE_LIMIT_WINDOW_SECONDS - Rate limit window in seconds
+ * @property {number} RATE_LIMIT_MAX_REQUESTS - Maximum requests allowed per window (5 per minute)
  * @property {number} CACHE_TTL_PRICE - Cache TTL for stock prices in seconds (5 minutes)
  * @property {number} CACHE_TTL_HISTORY - Cache TTL for historical data in seconds (1 hour)
  * @property {number} CACHE_TTL_SUMMARY - Cache TTL for AI summaries in seconds (8 hours)
@@ -23,7 +24,8 @@
  */
 export const CONFIG = {
   // Rate Limiting
-  RATE_LIMIT_SECONDS: 60,  // Cloudflare KV requires minimum TTL of 60 seconds
+  RATE_LIMIT_WINDOW_SECONDS: 60,  // Time window for rate limiting (seconds)
+  RATE_LIMIT_MAX_REQUESTS: 5,     // Max requests allowed per window
   
   // Cache TTLs (seconds)
   CACHE_TTL_PRICE: 300,        // 5 minutes

@@ -233,7 +233,7 @@ describe('buildHelpEmbed', () => {
     const text = JSON.stringify(embed);
     expect(text).toContain('Finnhub');
     expect(text).toContain('Massive.com');
-    expect(text).toContain('OpenAI');
+    expect(text).toContain('Perplexity');
   });
 
   it('should have neutral color', () => {
@@ -392,7 +392,7 @@ describe('buildCryptoEmbed', () => {
     expect(embed.footer).toBeDefined();
     expect(embed.footer.text).toContain('Finnhub');
     expect(embed.footer.text).toContain('Massive.com');
-    expect(embed.footer.text).toContain('OpenAI');
+    expect(embed.footer.text).toContain('Perplexity');
   });
 
   it('should have valid timestamp', () => {
