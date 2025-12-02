@@ -29,6 +29,7 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
     const prompt = formatPrompt(ticker, companyName);
 
     console.log('[INFO] Requesting AI summary from Perplexity', { ticker, companyName });
+    console.log('[DEBUG] Perplexity prompt', { ticker, prompt });
 
     // Make API request with timeout and web search enabled
     const apiCallStart = Date.now();
@@ -117,7 +118,12 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
  * @returns {string} Formatted prompt
  */
 export function formatPrompt(ticker, companyName) {
-  return `You are a financial news analyst with web search capabilities. Search the web for the most recent news and developments about ${companyName} (${ticker}) from the last 72 hours. Look first to see if there were any significant events in the last 24 hrs.  
+  // Include current date so the model knows what "recent" means
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+
+  return `Today's date is ${today}. You are a financial news analyst with web search capabilities. Search the web for the most recent news and developments about ${companyName} (${ticker}) from the last 72 hours ONLY. Prioritize any significant events from the last 24 hours.
+
+IMPORTANT: Only include news dated ${today} or within the past 3 days. Ignore any older information. If you cannot find news from this timeframe, state that no recent news is available, and only in those cases, provide a more general summary of the company's recent performance and market sentiment.
 
 Provide a concise summary (3-4 sentences, max 800 characters) focusing on:
 1. Recent factual developments that may impact stock price (earnings, product launches, regulatory news, etc.)
