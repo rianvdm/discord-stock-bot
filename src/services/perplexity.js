@@ -47,6 +47,7 @@ export async function generateAISummary(ticker, companyName, apiKey, client = nu
           }
         ],
         max_tokens: 800, // Limit output length for concise summaries
+        search_recency_filter: 'week', // Limit search results to the past 7 days
       }),
       new Promise((_, reject) => 
         setTimeout(() => reject(new Error('Request timeout')), CONFIG.PERPLEXITY_TIMEOUT)
