@@ -333,9 +333,11 @@ describe('Integration: Complete Bot Workflows', () => {
 
       const cachedSummary = "Apple exceeded Q4 earnings expectations. Strong iPhone sales drive growth.";
 
-      mockKV.get.mockResolvedValueOnce(cachedPrice);
+      // Cache lookups in stock.js are: history, summary, market_status, company_profile
       mockKV.get.mockResolvedValueOnce(cachedHistory);
-      mockKV.get.mockResolvedValueOnce(cachedSummary);
+      mockKV.get.mockResolvedValueOnce(JSON.stringify(cachedSummary));
+      mockKV.get.mockResolvedValueOnce(cachedPrice);
+      mockKV.get.mockResolvedValueOnce(null); // company_profile not cached
 
       // Mock cache writes
       mockKV.put.mockResolvedValue(undefined);
