@@ -27,19 +27,19 @@ export const CONFIG = {
   // Rate Limiting
   RATE_LIMIT_WINDOW_SECONDS: 60,  // Time window for rate limiting (seconds)
   RATE_LIMIT_MAX_REQUESTS: 5,     // Max requests allowed per window
-  
+
   // Cache TTLs (seconds)
   CACHE_TTL_PRICE: 300,        // 5 minutes
   CACHE_TTL_HISTORY: 3600,     // 1 hour
   CACHE_TTL_SUMMARY: 28800,    // 8 hours
   CACHE_TTL_COMPANY_PROFILE: 259200,  // 3 days (company names rarely change)
   CACHE_TTL_MARKET_STATUS: 60, // 1 minute (market status changes frequently)
-  
+
   // Stock Data
   DEFAULT_PERIOD_DAYS: 30,     // Future: make configurable per command
   STOCK_HISTORY_DAYS: 42,      // Request 42 calendar days to get ~30 trading days (excluding weekends)
   CRYPTO_HISTORY_DAYS: 30,     // Crypto trades 24/7, so 30 calendar days = 30 data points
-  
+
   // API Timeouts (milliseconds)
   // Using deferred responses, we have up to 15 minutes
   MASSIVE_TIMEOUT: 10000,   // 10 seconds for stock data
@@ -47,12 +47,12 @@ export const CONFIG = {
   PERPLEXITY_TIMEOUT: 30000, // 30 seconds for AI summary with web search
   FINNHUB_TIMEOUT: 5000,    // 5 seconds for real-time market status check
   COMMAND_TIMEOUT: 45000,   // 45 seconds overall command timeout (sends error if exceeded)
-  
+
   // Market Configuration
   SUPPORTED_MARKETS: ['US'],   // Future: add international
 
   // AI Provider
-  AI_SUMMARY_PROVIDER: 'perplexity', // 'perplexity' or 'openai' — one line to switch
+  AI_SUMMARY_PROVIDER: 'openai', // 'perplexity' or 'openai' — one line to switch
 
   // Display
   CHART_HEIGHT: 7,             // ASCII chart resolution
