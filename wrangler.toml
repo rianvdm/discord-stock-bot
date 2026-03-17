@@ -45,6 +45,7 @@ id = "297358b6c2eb43dd9362a22d4e369d9a"
 #   wrangler secret put DISCORD_PUBLIC_KEY
 #   wrangler secret put MASSIVE_API_KEY
 #   wrangler secret put OPENAI_API_KEY
+#   wrangler secret put PERPLEXITY_API_KEY
 #   wrangler secret put FINNHUB_API_KEY
 #
 # Required Secrets:
@@ -52,6 +53,7 @@ id = "297358b6c2eb43dd9362a22d4e369d9a"
 #   - DISCORD_PUBLIC_KEY: Discord application public key (for signature verification)
 #   - MASSIVE_API_KEY: Massive.com (Polygon.io) API key for stock data
 #   - OPENAI_API_KEY: OpenAI API key for AI-powered news summaries
+#   - PERPLEXITY_API_KEY: Perplexity API key for AI-powered news summaries (sonar model)
 #   - FINNHUB_API_KEY: Finnhub API key for real-time market status
 #
 # Optional Secrets:

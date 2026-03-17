@@ -15,6 +15,8 @@
  * @property {number} CRYPTO_HISTORY_DAYS - Calendar days to fetch for crypto (trades 24/7)
  * @property {number} MASSIVE_TIMEOUT - API timeout for Massive.com requests in milliseconds
  * @property {number} OPENAI_TIMEOUT - API timeout for OpenAI requests in milliseconds
+ * @property {string} AI_SUMMARY_PROVIDER - Active AI summary provider ('perplexity' or 'openai')
+ * @property {number} PERPLEXITY_TIMEOUT - API timeout for Perplexity requests in milliseconds
  * @property {string[]} SUPPORTED_MARKETS - Supported stock markets (currently US only)
  * @property {number} CHART_HEIGHT - ASCII sparkline chart height (number of characters)
  * @property {number} EMBED_COLOR_POSITIVE - Discord embed color for positive price changes (green)
@@ -42,12 +44,16 @@ export const CONFIG = {
   // Using deferred responses, we have up to 15 minutes
   MASSIVE_TIMEOUT: 10000,   // 10 seconds for stock data
   OPENAI_TIMEOUT: 30000,    // 30 seconds for AI summary with web search
+  PERPLEXITY_TIMEOUT: 30000, // 30 seconds for AI summary with web search
   FINNHUB_TIMEOUT: 5000,    // 5 seconds for real-time market status check
   COMMAND_TIMEOUT: 45000,   // 45 seconds overall command timeout (sends error if exceeded)
   
   // Market Configuration
   SUPPORTED_MARKETS: ['US'],   // Future: add international
-  
+
+  // AI Provider
+  AI_SUMMARY_PROVIDER: 'perplexity', // 'perplexity' or 'openai' — one line to switch
+
   // Display
   CHART_HEIGHT: 7,             // ASCII chart resolution
   EMBED_COLOR_POSITIVE: 0x00ff00,  // Green
