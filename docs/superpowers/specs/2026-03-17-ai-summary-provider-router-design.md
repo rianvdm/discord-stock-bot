@@ -40,12 +40,15 @@ Commands currently call `generateAISummary(ticker, companyName, apiKey)`. With t
 
 | File | Action |
 |------|--------|
-| `src/services/perplexity.js` | Restore from `main` branch |
+| `src/services/perplexity.js` | Restore from `main` branch via `git checkout main -- src/services/perplexity.js` |
 | `src/services/ai-summary.js` | Create — router |
-| `src/config.js` | Add `AI_SUMMARY_PROVIDER: 'perplexity'` |
+| `src/config.js` | Add `AI_SUMMARY_PROVIDER: 'perplexity'`; restore `PERPLEXITY_TIMEOUT: 30000` (removed during OpenAI migration — `perplexity.js` references it directly) |
 | `src/commands/stock.js` | Import from `ai-summary.js`; pass `env` instead of `apiKey` |
 | `src/commands/crypto.js` | Same |
-| `tests/services/ai-summary.test.js` | Create — test routing logic and unknown provider error |
+| `tests/services/ai-summary.test.js` | Create — test routing logic, unknown provider error, and undefined API key case |
+| `tests/commands/stock.test.js` | Add `PERPLEXITY_API_KEY: 'test_perplexity_key'` to `mockEnv` |
+| `tests/commands/crypto.test.js` | Same |
+| `wrangler.toml` | Document `PERPLEXITY_API_KEY` as a required secret |
 
 ## Default Provider
 
