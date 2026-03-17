@@ -8,7 +8,7 @@ import { BotError, ErrorTypes, formatErrorResponse, logError } from '../utils/er
 import { getCached, setCached } from '../middleware/cache.js';
 import { fetchCryptoHistoricalData } from '../services/massiveCrypto.js';
 import { fetchCryptoQuote } from '../services/finnhubCrypto.js';
-import { generateAISummary } from '../services/openai-responses.js';
+import { generateAISummary } from '../services/ai-summary.js';
 import { formatChartWithLabels } from '../utils/chartGenerator.js';
 import { buildCryptoEmbed } from '../utils/embedBuilder.js';
 import { CONFIG } from '../config.js';
@@ -120,7 +120,6 @@ export async function handleCryptoCommand(interaction, env) {
 async function fetchCryptoData(symbol, polygonTicker, env) {
   const cacheKV = env.CACHE;
   const massiveApiKey = env.MASSIVE_API_KEY;
-  const openaiApiKey = env.OPENAI_API_KEY;
   const finnhubApiKey = env.FINNHUB_API_KEY;
 
   try {
@@ -157,10 +156,10 @@ async function fetchCryptoData(symbol, polygonTicker, env) {
 
     // Fetch AI summary if not cached (non-blocking, can fail)
     if (!cachedSummary) {
-      console.log('[INFO] Fetching AI summary from OpenAI', { symbol });
+      console.log('[INFO] Fetching AI summary', { symbol, provider: CONFIG.AI_SUMMARY_PROVIDER });
       const displayName = getCryptoDisplayName(symbol);
       fetchPromises.push(
-        generateAISummary(symbol, displayName, openaiApiKey)
+        generateAISummary(symbol, displayName, env)
           .then(data => ({ type: 'summary', data }))
           .catch(error => ({ type: 'summary', error }))
       );

@@ -7,7 +7,7 @@ import { enforceRateLimit } from '../middleware/rateLimit.js';
 import { BotError, ErrorTypes, formatErrorResponse, logError } from '../utils/errorHandler.js';
 import { getCached, setCached } from '../middleware/cache.js';
 import { fetchHistoricalData, suggestTickers, getCompanyName } from '../services/massive.js';
-import { generateAISummary } from '../services/openai-responses.js';
+import { generateAISummary } from '../services/ai-summary.js';
 import { fetchMarketStatus, fetchCompanyProfile } from '../services/finnhub.js';
 import { formatChartWithLabels } from '../utils/chartGenerator.js';
 import { buildStockEmbed } from '../utils/embedBuilder.js';
@@ -118,7 +118,6 @@ export async function handleStockCommand(interaction, env) {
 async function fetchStockData(ticker, env) {
   const cacheKV = env.CACHE;
   const massiveApiKey = env.MASSIVE_API_KEY;
-  const openaiApiKey = env.OPENAI_API_KEY;
   const finnhubApiKey = env.FINNHUB_API_KEY;
 
   try {
@@ -146,10 +145,10 @@ async function fetchStockData(ticker, env) {
 
     // Fetch AI summary if not cached (non-blocking, can fail)
     if (!cachedSummary) {
-      console.log('[INFO] Fetching AI summary from OpenAI', { ticker });
+      console.log('[INFO] Fetching AI summary', { ticker, provider: CONFIG.AI_SUMMARY_PROVIDER });
       const companyName = getCompanyName(ticker);
       fetchPromises.push(
-        generateAISummary(ticker, companyName, openaiApiKey)
+        generateAISummary(ticker, companyName, env)
           .then(data => ({ type: 'summary', data }))
           .catch(error => ({ type: 'summary', error }))
       );

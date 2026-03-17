@@ -24,6 +24,7 @@ describe('Crypto Command - Structure', () => {
       CACHE: mockKV,
       MASSIVE_API_KEY: 'test_massive_key',
       OPENAI_API_KEY: 'test_openai_key',
+      PERPLEXITY_API_KEY: 'test_perplexity_key',
       FINNHUB_API_KEY: 'test_finnhub_key',
     };
   });
