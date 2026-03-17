@@ -64,7 +64,7 @@ export async function generateAISummary(ticker, companyName, apiKey) {
     }
 
     const data = await response.json();
-    const content = extractContent(data);
+    const { content, webSearchUsed } = extractContent(data);
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
       throw new Error('No content in OpenAI response');
@@ -76,6 +76,7 @@ export async function generateAISummary(ticker, companyName, apiKey) {
       apiDuration: `${apiCallDuration}ms`,
       totalDuration: `${totalDuration}ms`,
       summaryLength: content.length,
+      webSearchUsed,
       cached: false,
     });
 
@@ -114,23 +115,25 @@ export async function generateAISummary(ticker, companyName, apiKey) {
  * @returns {string|null}
  */
 function extractContent(data) {
-  if (data.output_text) {
-    return data.output_text;
-  }
+  let content = data.output_text || null;
+  let webSearchUsed = false;
 
   if (Array.isArray(data.output)) {
     for (const item of data.output) {
-      if (item.type === 'message' && Array.isArray(item.content)) {
+      if (item.type === 'web_search_call') {
+        webSearchUsed = true;
+      }
+      if (!content && item.type === 'message' && Array.isArray(item.content)) {
         for (const block of item.content) {
           if (block.type === 'output_text' && block.text) {
-            return block.text;
+            content = block.text;
           }
         }
       }
     }
   }
 
-  return null;
+  return { content, webSearchUsed };
 }
 
 /**
