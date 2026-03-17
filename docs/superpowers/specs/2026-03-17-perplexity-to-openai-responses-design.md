@@ -17,8 +17,7 @@ Exports `generateAISummary(ticker, companyName, apiKey)` — identical signature
 
 **Request shape:**
 - `model: 'gpt-5.4'`
-- `tools: [{ type: 'web_search' }]`
-- `tool_choice: { type: 'web_search' }` — forces web search on every call
+- `tools: [{ type: 'web_search' }]` — web search enabled; model invokes it when prompted to search
 - `instructions`: system prompt (separate field per Responses API convention)
 - `input`: user prompt string (single-turn, no array needed)
 - `store: false` — opt out of OpenAI storage for privacy
@@ -41,13 +40,15 @@ Exports `generateAISummary(ticker, companyName, apiKey)` — identical signature
 | `src/services/openai-responses.js` | Create |
 | `src/commands/stock.js` | Update import path and `PERPLEXITY_API_KEY` → `OPENAI_API_KEY` |
 | `src/commands/crypto.js` | Update import path and `PERPLEXITY_API_KEY` → `OPENAI_API_KEY` |
-| `src/config.js` | Add `OPENAI_RESPONSES_TIMEOUT: 30000`, remove `PERPLEXITY_TIMEOUT` |
+| `src/config.js` | Remove `PERPLEXITY_TIMEOUT`; reuse existing `OPENAI_TIMEOUT` (already 30000) |
 | `src/services/perplexity.js` | Delete |
 | `src/services/openai.js` | Delete (broken prior attempt) |
+| `tests/services/openai.test.js` | Delete (imports deleted service, uses Chat Completions mocks) |
+| `tests/services/openai-responses.test.js` | Create (mock `globalThis.fetch`, assert against Responses API shape) |
 
 ## Environment Variables
 
-`PERPLEXITY_API_KEY` is replaced by `OPENAI_API_KEY` in the Cloudflare Worker environment. The `openai.js` service already used `OPENAI_API_KEY` so this aligns with what the bot already expected for that path.
+`OPENAI_API_KEY` is already configured as a Worker secret and documented in `wrangler.toml`. No new secrets need to be added. `PERPLEXITY_API_KEY` can be removed from the Worker environment once the migration is complete.
 
 ## Reference Implementation
 
