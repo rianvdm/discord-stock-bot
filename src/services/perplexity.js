@@ -12,7 +12,7 @@ import { CONFIG } from '../config.js';
  * @param {string} apiKey - Perplexity API key
  * @param {OpenAI} [client] - Optional OpenAI client instance (for testing)
  * @returns {Promise<string>} AI-generated summary (2-4 sentences)
- * @throws {Error} If API request fails (throws PARTIAL_FAILURE to not fail entire request)
+ * @throws {Error} If API request fails
  */
 export async function generateAISummary(ticker, companyName, apiKey, client = null) {
   const startTime = Date.now();
