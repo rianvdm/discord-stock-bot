@@ -145,9 +145,9 @@ function extractContent(data) {
 export function formatPrompt(ticker, companyName) {
   const today = new Date().toISOString().split('T')[0];
 
-  return `Today's date is ${today}. You are a financial news analyst with web search capabilities. Search the web for the most recent news and developments about ${companyName} (${ticker}) from the last 72 hours ONLY. Prioritize any significant events from the last 24 hours.
+  return `Today's date is ${today}. You are a financial news analyst with web search capabilities. Search the web for the most recent news and developments about ${companyName} (${ticker}) from the last 7 days. Prioritize any significant events from the last 24 hours.
 
-IMPORTANT: Only include news dated ${today} or within the past 3 days. Ignore any older information. If you cannot find news from this timeframe, state that no recent news is available, and only in those cases, provide a more general summary of the company's recent performance and market sentiment.
+IMPORTANT: Only include news dated ${today} or within the past 7 days. Ignore any older information. If you cannot find news from this timeframe, state that no recent news is available, and only in those cases, provide a more general summary of the company's recent performance and market sentiment.
 
 Provide a concise summary (3-4 sentences, max 800 characters) focusing on:
 1. Recent factual developments that may impact stock price (earnings, product launches, regulatory news, etc.)
