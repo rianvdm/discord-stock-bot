@@ -92,15 +92,62 @@ describe('Finnhub Service', () => {
       );
     });
 
-    it('should handle 429 rate limit error', async () => {
+    it('should retry 429s and surface a rate limit error when they persist', async () => {
       global.fetch = vi.fn().mockResolvedValue({
         ok: false,
         status: 429
       });
 
-      await expect(fetchMarketStatus(mockTicker, mockApiKey)).rejects.toThrow(
-        'Finnhub API rate limit exceeded'
-      );
+      const promise = fetchMarketStatus(mockTicker, mockApiKey);
+      const assertion = expect(promise).rejects.toThrow('Finnhub API rate limit exceeded');
+      // Backoff uses setTimeout; fake timers must be driven or this never settles.
+      await vi.runAllTimersAsync();
+      await assertion;
+
+      // 1 initial attempt + 2 retries
+      expect(global.fetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('should flag rate limit errors with isRateLimit so callers can tell them apart', async () => {
+      global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 429 });
+
+      const promise = fetchMarketStatus(mockTicker, mockApiKey).catch(e => e);
+      await vi.runAllTimersAsync();
+      const error = await promise;
+
+      expect(error.isRateLimit).toBe(true);
+      expect(error.name).toBe('FinnhubRateLimitError');
+    });
+
+    it('should recover when a 429 is followed by a successful retry', async () => {
+      const currentTime = 1700000000;
+      vi.setSystemTime(currentTime * 1000);
+
+      global.fetch = vi.fn()
+        .mockResolvedValueOnce({ ok: false, status: 429 })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ c: 175.43, d: 2.1, dp: 1.21, t: currentTime - 60 })
+        });
+
+      const promise = fetchMarketStatus(mockTicker, mockApiKey);
+      await vi.runAllTimersAsync();
+      const result = await promise;
+
+      expect(result.currentPrice).toBe(175.43);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('should NOT retry non-429 failures', async () => {
+      global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 401 });
+
+      const promise = fetchMarketStatus(mockTicker, mockApiKey).catch(e => e);
+      await vi.runAllTimersAsync();
+      const error = await promise;
+
+      expect(error.message).toContain('Invalid Finnhub API key');
+      // A bad key will not fix itself; retrying would only burn quota.
+      expect(global.fetch).toHaveBeenCalledTimes(1);
     });
 
     it('should handle 401 unauthorized error', async () => {

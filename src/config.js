@@ -48,6 +48,13 @@ export const CONFIG = {
   FINNHUB_TIMEOUT: 5000,    // 5 seconds for real-time market status check
   COMMAND_TIMEOUT: 45000,   // 45 seconds overall command timeout (sends error if exceeded)
 
+  // Finnhub 429 retry. Finnhub throttles by source as well as by key, and Workers
+  // share Cloudflare egress IPs, so quotes can be rate limited even when the key's
+  // own quota is mostly unused. These 429s are transient — retry briefly.
+  // Worst case added latency: 200 + 400 = 600ms plus jitter, well inside FINNHUB_TIMEOUT.
+  FINNHUB_MAX_ATTEMPTS: 3,      // 1 initial attempt + 2 retries
+  FINNHUB_RETRY_BASE_MS: 200,   // exponential base; jitter up to this much is added
+
   // Market Configuration
   SUPPORTED_MARKETS: ['US'],   // Future: add international
 

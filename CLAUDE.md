@@ -2,46 +2,43 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> ## 🛑 DO NOT RUN `npm run deploy` — READ THIS FIRST
+> ## ⚠️ 2026-08-18 incident — Finnhub 429s surfaced as "ticker not found"
 >
-> **This repo's code is known-broken in production as of 2026-08-18.** Deploying it takes the
-> bot down: every `/stock <ticker>` returns `Stock ticker "X" not found`, for all tickers.
+> **Root cause (confirmed from live logs).** Finnhub returns **429** on `/quote`, so
+> `market_status` was missing and `src/commands/stock.js` reported the ticker as not found.
+> Captured error: `[ERROR] Failed to fetch market_status { error: 'Finnhub API rate limit
+> exceeded' }`, while Massive.com returned all 30 history bars for the same ticker.
 >
-> **Why.** Production runs Worker version `43b8c046` (uploaded **2026-04-10 via the script
-> API**, `source: "api"`). That code exists *only* in that deployed version — it was never
-> committed here. The last deploy from this repo was 2026-03-26. Deploying overwrites the
-> April version with this tree and reintroduces the bug it fixed. `wrangler deploy` warns
-> about exactly this ("last updated via the script API"); **do not wave the warning through.**
+> **It is throttling by source, not your quota.** During the failures the Worker was 429'd
+> while the *same key* from a laptop returned `200` with `x-ratelimit-remaining: 44` of `60`.
+> Workers egress from shared Cloudflare IPs, so requests get throttled independently of the
+> key's own usage. This is why it looked ticker-specific — `/stock AAPL` passing and
+> `/stock NET` failing was which egress IP served the request, not which ticker.
 >
-> **What's broken — still under investigation.** `src/commands/stock.js:219` throws NOT_FOUND
-> when `hasStockDataError || !marketStatusData || !historyData`, so the fault is in the Massive
-> history fetch or the Finnhub quote fetch.
+> **Fixed by** (a) retrying 429s in `fetchMarketStatus` with jittered backoff, and (b) falling
+> back to the last close from history when the live quote is unavailable, labelled as delayed,
+> instead of throwing NOT_FOUND. `FinnhubRateLimitError.isRateLimit` lets callers tell
+> throttling apart from a genuinely unknown ticker. Regression cover:
+> `tests/commands/stock-degradation.test.js`.
 >
-> **Finnhub `/quote` is NOT the cause** — ruled out by testing the live endpoint with the real
-> key on 2026-08-18: `NET` returns `{"c":300.05,...,"t":1787074949}`, numeric and fresh, which
-> passes `fetchMarketStatus`'s validation. An earlier diagnosis blaming it was **wrong**; it
-> rested on `market_status` being absent from KV, which only reflects its 60-second TTL.
+> **Two dead ends recorded so they are not repeated.** An early diagnosis blamed Finnhub
+> `/quote` being broken — wrong; it rested on `market_status` being absent from KV, which only
+> reflects its 60-second TTL. A second blamed an uncommitted script-API hotfix being reverted
+> by a deploy — also wrong; the same failure occurs on the pre-deploy version.
 >
-> Current evidence points at the **Massive.com history fetch, and it is ticker-specific**:
-> `/stock AAPL` succeeds while `/stock NET` fails, and during the outage the cache held
-> `stock:history:AAPL:42` but never `stock:history:NET:42`. Root cause not yet confirmed —
-> do not "fix" this from the description alone; capture the real error first with
-> `wrangler tail discord-stock-bot` (note: the worker name is a **positional** arg, not
-> `--name`) while running the failing command.
+> ### Deploy notes that still apply
 >
-> **Before deploying again**, all three:
-> 1. Find and fix the real fault, verified against the live APIs with real keys.
-> 2. Add `MASSIVE_API_KEY` and `FINNHUB_API_KEY` locally (`.env` is gitignored; `FINNHUB_API_KEY`
->    is already there). Their absence is why this could not be debugged locally at first.
-> 3. Turn on observability (`[observability] enabled = true` in `wrangler.toml`). The Worker
->    has no observability and no logpush, so **there are no retroactive logs** — the outage
->    could not be diagnosed from logs, only inferred from KV cache contents.
->
-> Cloudflare does not expose per-version script download, so the April code cannot be
-> recovered — `fetchMarketStatus` has to be re-derived and tested, not copied.
->
-> Roll back with: `wrangler rollback --name discord-stock-bot` (or deploy version
-> `43b8c046-d63c-4d44-ab2f-2b072cf1f1f1` at 100%).
+> * The last deploy before 2026-08-18 was version `43b8c046`, uploaded **2026-04-10 via the
+>   script API**, so `wrangler deploy` warns that it "was last updated via the script API".
+>   In a non-interactive shell wrangler auto-answers **yes**. Cloudflare does not expose
+>   per-version script download, so anything that only ever existed in an API upload cannot be
+>   recovered — check `metadata.source` on the newest version before deploying.
+> * **There are no retroactive logs.** No observability, no logpush. Use
+>   `wrangler tail discord-stock-bot` (worker name is a **positional** arg, not `--name`) and
+>   reproduce live. Enabling `[observability]` in `wrangler.toml` would remove this blind spot.
+> * Local debugging needs `MASSIVE_API_KEY` and `FINNHUB_API_KEY` in `.env` (gitignored).
+> * Roll back with `wrangler rollback --name discord-stock-bot`, or deploy a known-good
+>   `version_id` at 100%.
 
 ## Project Overview
 

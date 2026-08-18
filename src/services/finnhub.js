@@ -6,15 +6,75 @@ import { CONFIG } from '../config.js';
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 
 /**
- * Fetch market status for a given ticker from Finnhub
- * Uses the real-time quote endpoint to determine if market is open
- * 
+ * Error thrown when Finnhub responds 429. Carries `isRateLimit` so callers can
+ * distinguish throttling from a genuinely unknown ticker — the two used to be
+ * conflated and surfaced to users as "ticker not found".
+ */
+export class FinnhubRateLimitError extends Error {
+  constructor(message = 'Finnhub API rate limit exceeded') {
+    super(message);
+    this.name = 'FinnhubRateLimitError';
+    this.isRateLimit = true;
+  }
+}
+
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * Fetch market status, retrying on 429.
+ *
+ * Finnhub throttles by source as well as by key: Workers egress from shared
+ * Cloudflare IPs, so a request can be rate limited while the key's own quota is
+ * largely unused (observed 2026-08-18 — the Worker got 429s while the same key
+ * from a laptop reported x-ratelimit-remaining: 44 of 60). Those 429s are
+ * transient, so a couple of short retries usually clears them.
+ *
  * @param {string} ticker - Stock ticker symbol (e.g., 'AAPL')
  * @param {string} apiKey - Finnhub API key
  * @returns {Promise<Object>} Market status with isOpen boolean and timestamp
+ * @throws {FinnhubRateLimitError} If still rate limited after retries
  * @throws {Error} If API request fails or data is invalid
  */
 export async function fetchMarketStatus(ticker, apiKey) {
+  const maxAttempts = CONFIG.FINNHUB_MAX_ATTEMPTS;
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fetchMarketStatusOnce(ticker, apiKey);
+    } catch (error) {
+      lastError = error;
+
+      // Only 429s are worth retrying. A bad key or unknown ticker will not fix
+      // itself, and retrying would just burn more of the per-minute quota.
+      if (!error.isRateLimit || attempt === maxAttempts) {
+        throw error;
+      }
+
+      // Exponential backoff with jitter, so parallel invocations do not retry
+      // in lockstep and re-trigger the same throttle.
+      const backoff = CONFIG.FINNHUB_RETRY_BASE_MS * Math.pow(2, attempt - 1);
+      const delay = backoff + Math.floor(Math.random() * CONFIG.FINNHUB_RETRY_BASE_MS);
+      console.warn('[WARN] Finnhub rate limited, retrying', {
+        ticker,
+        attempt,
+        maxAttempts,
+        delay: `${delay}ms`
+      });
+      await sleep(delay);
+    }
+  }
+
+  throw lastError;
+}
+
+/**
+ * Single market-status attempt. Split out so retry logic stays readable.
+ * @param {string} ticker - Stock ticker symbol
+ * @param {string} apiKey - Finnhub API key
+ * @returns {Promise<Object>} Market status
+ */
+async function fetchMarketStatusOnce(ticker, apiKey) {
   const url = `${FINNHUB_BASE_URL}/quote?symbol=${ticker}&token=${apiKey}`;
   
   const startTime = Date.now();
@@ -39,7 +99,7 @@ export async function fetchMarketStatus(ticker, apiKey) {
       if (response.status === 404) {
         throw new Error(`Ticker ${ticker} not found on Finnhub`);
       } else if (response.status === 429) {
-        throw new Error('Finnhub API rate limit exceeded');
+        throw new FinnhubRateLimitError();
       } else if (response.status === 401 || response.status === 403) {
         throw new Error('Invalid Finnhub API key');
       }
@@ -133,7 +193,7 @@ export async function fetchCompanyProfile(ticker, apiKey) {
       if (response.status === 404) {
         throw new Error(`Company profile for ${ticker} not found on Finnhub`);
       } else if (response.status === 429) {
-        throw new Error('Finnhub API rate limit exceeded');
+        throw new FinnhubRateLimitError();
       } else if (response.status === 401 || response.status === 403) {
         throw new Error('Invalid Finnhub API key');
       }

@@ -31,8 +31,9 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
     ticker, 
     companyName, 
     currentPrice, 
-    changePercent, 
-    changeAmount 
+    changePercent,
+    changeAmount,
+    isDelayed
   } = stockData;
 
   // Price data always comes from Finnhub (most up-to-date)
@@ -49,8 +50,12 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
     : `-$${Math.abs(displayChange).toFixed(2)}`;
   const priceChange = `${formattedChangeAmount} (${changeSign}${displayChangePercent.toFixed(2)}%)`;
 
-  // Build fields array - show "Current Price" when market is open, "Previous Close" when closed
-  const priceLabel = marketOpen ? '💰 Current Price' : '💰 Previous Close';
+  // Build fields array - show "Current Price" when market is open, "Previous Close" when closed.
+  // isDelayed means the live quote was unavailable (e.g. Finnhub throttled us) and this price
+  // is the most recent close from history — say so rather than implying it is live.
+  const priceLabel = isDelayed
+    ? '💰 Last Close (live quote unavailable)'
+    : (marketOpen ? '💰 Current Price' : '💰 Previous Close');
   
   const fields = [
     {
@@ -65,7 +70,9 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
     },
     {
       name: '🕐 Market Status',
-      value: marketOpen ? '✅ Market Open' : '🔴 Market Closed (Last Close)',
+      value: isDelayed
+        ? '⚠️ Live quote temporarily unavailable — showing last close'
+        : (marketOpen ? '✅ Market Open' : '🔴 Market Closed (Last Close)'),
       inline: false
     }
   ];

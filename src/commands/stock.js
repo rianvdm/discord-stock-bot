@@ -115,7 +115,7 @@ export async function handleStockCommand(interaction, env) {
  * @returns {Promise<Object>} Stock data with price, history, and optional summary
  * @throws {BotError} If stock data cannot be fetched
  */
-async function fetchStockData(ticker, env) {
+export async function fetchStockData(ticker, env) {
   const cacheKV = env.CACHE;
   const massiveApiKey = env.MASSIVE_API_KEY;
   const finnhubApiKey = env.FINNHUB_API_KEY;
@@ -182,14 +182,17 @@ async function fetchStockData(ticker, env) {
     let summaryData = cachedSummary;
     let marketStatusData = cachedMarketStatus;
     let companyProfileData = cachedCompanyProfile;
-    let hasStockDataError = false;
+    let marketStatusRateLimited = false;
 
     for (const result of fetchResults) {
       if (result.error) {
         // Handle errors
         if (result.type === 'history' || result.type === 'market_status') {
-          // Critical data failed
-          hasStockDataError = true;
+          if (result.type === 'market_status' && result.error.isRateLimit) {
+            // Throttled, not missing. Recorded so the error message stays honest
+            // if we cannot fall back to history either.
+            marketStatusRateLimited = true;
+          }
           console.error(`[ERROR] Failed to fetch ${result.type}`, {
             ticker,
             error: result.error.message
@@ -215,8 +218,20 @@ async function fetchStockData(ticker, env) {
       }
     }
 
-    // If critical stock data failed, throw error with suggestions
-    if (hasStockDataError || !marketStatusData || !historyData) {
+    // Historical data is the only genuinely required piece: Massive.com returns
+    // data for any valid ticker, so its absence is the real signal that a ticker
+    // does not exist. Report NOT_FOUND only for that case.
+    if (!historyData) {
+      // If the live quote was merely throttled, do not claim the ticker is unknown.
+      if (marketStatusRateLimited) {
+        throw new BotError(
+          ErrorTypes.RATE_LIMIT,
+          'Market data is rate limited right now. Please try again in a moment.',
+          null,
+          { ticker }
+        );
+      }
+
       const suggestions = suggestTickers(ticker);
       throw new BotError(
         ErrorTypes.NOT_FOUND,
@@ -226,17 +241,48 @@ async function fetchStockData(ticker, env) {
       );
     }
 
-    // Transform Finnhub data to include ticker and companyName for consistency
+    // Degrade gracefully when the live quote is unavailable but history is not.
+    // Previously a single Finnhub 429 produced "ticker not found", which sent us
+    // chasing a data problem that did not exist (2026-08-18). Fall back to the most
+    // recent close from history and mark the price as delayed.
     const companyName = companyProfileData ? companyProfileData.name : ticker;
-    const priceData = {
-      ticker: ticker,
-      companyName: companyName,
-      currentPrice: marketStatusData.currentPrice,
-      changeAmount: marketStatusData.change,
-      changePercent: marketStatusData.changePercent,
-      timestamp: marketStatusData.timestamp,
-      isOpen: marketStatusData.isOpen
-    };
+    let priceData;
+
+    if (marketStatusData) {
+      priceData = {
+        ticker: ticker,
+        companyName: companyName,
+        currentPrice: marketStatusData.currentPrice,
+        changeAmount: marketStatusData.change,
+        changePercent: marketStatusData.changePercent,
+        timestamp: marketStatusData.timestamp,
+        isOpen: marketStatusData.isOpen,
+        isDelayed: false
+      };
+    } else {
+      const closes = historyData.closingPrices || [];
+      const lastClose = closes.length > 0 ? closes[closes.length - 1] : null;
+      const prevClose = closes.length > 1 ? closes[closes.length - 2] : null;
+      const changeAmount = lastClose !== null && prevClose !== null ? lastClose - prevClose : null;
+      const timestamps = historyData.timestamps || [];
+
+      console.warn('[WARN] Live quote unavailable, falling back to last close', {
+        ticker,
+        rateLimited: marketStatusRateLimited,
+        lastClose
+      });
+
+      priceData = {
+        ticker: ticker,
+        companyName: companyName,
+        currentPrice: lastClose,
+        changeAmount: changeAmount,
+        changePercent: changeAmount !== null && prevClose ? (changeAmount / prevClose) * 100 : null,
+        timestamp: timestamps.length > 0 ? timestamps[timestamps.length - 1] : null,
+        isOpen: false,
+        isDelayed: true
+      };
+    }
 
     // Step 4: Update caches in parallel for successfully fetched data
     const cacheUpdatePromises = [];
