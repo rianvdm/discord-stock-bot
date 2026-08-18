@@ -22,7 +22,7 @@ compatibility_date = "2024-01-01"
 # TTL: 60 seconds (auto-expiry)
 [[kv_namespaces]]
 binding = "RATE_LIMITS"
-id = "f1955f749faf4ef29dd963e0f317fc80"
+id = "8c2215ea7b544112b33dc2f17df62d54"
 
 # Cache Namespace
 # Stores stock data, historical prices, AI summaries, and market status
