@@ -13,18 +13,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > April version with this tree and reintroduces the bug it fixed. `wrangler deploy` warns
 > about exactly this ("last updated via the script API"); **do not wave the warning through.**
 >
-> **What's broken.** `fetchMarketStatus` in `src/services/finnhub.js` (the `/quote` endpoint).
-> Evidence: during the outage the cache filled `company_profile`, `history` and `summary`
-> normally, but never once wrote `market_status`. `src/commands/stock.js:219` throws NOT_FOUND
-> when `!marketStatusData`. `company_profile` hits Finnhub with the same key and works, so the
-> key is valid and `/quote` specifically is not returning numeric `t`/`c`, which makes
-> `finnhub.js` throw `Invalid data received from Finnhub API`. Most likely an upstream Finnhub
-> change after March that the April hotfix worked around.
+> **What's broken — still under investigation.** `src/commands/stock.js:219` throws NOT_FOUND
+> when `hasStockDataError || !marketStatusData || !historyData`, so the fault is in the Massive
+> history fetch or the Finnhub quote fetch.
+>
+> **Finnhub `/quote` is NOT the cause** — ruled out by testing the live endpoint with the real
+> key on 2026-08-18: `NET` returns `{"c":300.05,...,"t":1787074949}`, numeric and fresh, which
+> passes `fetchMarketStatus`'s validation. An earlier diagnosis blaming it was **wrong**; it
+> rested on `market_status` being absent from KV, which only reflects its 60-second TTL.
+>
+> Current evidence points at the **Massive.com history fetch, and it is ticker-specific**:
+> `/stock AAPL` succeeds while `/stock NET` fails, and during the outage the cache held
+> `stock:history:AAPL:42` but never `stock:history:NET:42`. Root cause not yet confirmed —
+> do not "fix" this from the description alone; capture the real error first with
+> `wrangler tail discord-stock-bot` (note: the worker name is a **positional** arg, not
+> `--name`) while running the failing command.
 >
 > **Before deploying again**, all three:
-> 1. Fix `fetchMarketStatus` and verify against the live Finnhub API with a real key.
-> 2. Add `.dev.vars` with `MASSIVE_API_KEY` and `FINNHUB_API_KEY`. Their absence is why this
->    cannot be debugged locally at all.
+> 1. Find and fix the real fault, verified against the live APIs with real keys.
+> 2. Add `MASSIVE_API_KEY` and `FINNHUB_API_KEY` locally (`.env` is gitignored; `FINNHUB_API_KEY`
+>    is already there). Their absence is why this could not be debugged locally at first.
 > 3. Turn on observability (`[observability] enabled = true` in `wrangler.toml`). The Worker
 >    has no observability and no logpush, so **there are no retroactive logs** — the outage
 >    could not be diagnosed from logs, only inferred from KV cache contents.
