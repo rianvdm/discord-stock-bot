@@ -2,6 +2,39 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> ## 🛑 DO NOT RUN `npm run deploy` — READ THIS FIRST
+>
+> **This repo's code is known-broken in production as of 2026-08-18.** Deploying it takes the
+> bot down: every `/stock <ticker>` returns `Stock ticker "X" not found`, for all tickers.
+>
+> **Why.** Production runs Worker version `43b8c046` (uploaded **2026-04-10 via the script
+> API**, `source: "api"`). That code exists *only* in that deployed version — it was never
+> committed here. The last deploy from this repo was 2026-03-26. Deploying overwrites the
+> April version with this tree and reintroduces the bug it fixed. `wrangler deploy` warns
+> about exactly this ("last updated via the script API"); **do not wave the warning through.**
+>
+> **What's broken.** `fetchMarketStatus` in `src/services/finnhub.js` (the `/quote` endpoint).
+> Evidence: during the outage the cache filled `company_profile`, `history` and `summary`
+> normally, but never once wrote `market_status`. `src/commands/stock.js:219` throws NOT_FOUND
+> when `!marketStatusData`. `company_profile` hits Finnhub with the same key and works, so the
+> key is valid and `/quote` specifically is not returning numeric `t`/`c`, which makes
+> `finnhub.js` throw `Invalid data received from Finnhub API`. Most likely an upstream Finnhub
+> change after March that the April hotfix worked around.
+>
+> **Before deploying again**, all three:
+> 1. Fix `fetchMarketStatus` and verify against the live Finnhub API with a real key.
+> 2. Add `.dev.vars` with `MASSIVE_API_KEY` and `FINNHUB_API_KEY`. Their absence is why this
+>    cannot be debugged locally at all.
+> 3. Turn on observability (`[observability] enabled = true` in `wrangler.toml`). The Worker
+>    has no observability and no logpush, so **there are no retroactive logs** — the outage
+>    could not be diagnosed from logs, only inferred from KV cache contents.
+>
+> Cloudflare does not expose per-version script download, so the April code cannot be
+> recovered — `fetchMarketStatus` has to be re-derived and tested, not copied.
+>
+> Roll back with: `wrangler rollback --name discord-stock-bot` (or deploy version
+> `43b8c046-d63c-4d44-ab2f-2b072cf1f1f1` at 100%).
+
 ## Project Overview
 
 A Discord bot providing real-time stock and cryptocurrency information with AI-powered news summaries. Built on Cloudflare Workers for global edge deployment with sub-second response times.
