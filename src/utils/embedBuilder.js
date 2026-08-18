@@ -211,7 +211,7 @@ export function buildHelpEmbed() {
       },
       {
         name: '📊 Data Sources',
-        value: `**Real-Time Quotes:** Finnhub (live prices & market status)\n**Historical Data:** Massive.com (30-day trends)\n**AI Summaries:** ${CONFIG.AI_SUMMARY_PROVIDER === 'openai' ? 'OpenAI (gpt-5.4 with web search)' : 'Perplexity SONAR with web search'}`,
+        value: `**Real-Time Quotes:** Finnhub (live prices & market status)\n**Historical Data:** Massive.com (30-day trends)\n**AI Summaries:** ${CONFIG.AI_SUMMARY_PROVIDER === 'openai' ? 'OpenAI (gpt-5.6-terra with web search)' : 'Perplexity SONAR with web search'}`,
         inline: false
       },
       {

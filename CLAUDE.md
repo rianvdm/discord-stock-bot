@@ -141,7 +141,9 @@ Discord → Cloudflare Worker → Command Router → Rate Limiter → Cache Laye
 - `massiveCrypto.js`: Historical crypto data (Massive.com API)
 - `finnhub.js`: Real-time stock quotes & market status (Finnhub API)
 - `finnhubCrypto.js`: Real-time crypto quotes (Finnhub API)
-- `openai.js`: AI news summaries with web search (OpenAI gpt-4o-mini)
+- `ai-summary.js`: Provider router — delegates to OpenAI or Perplexity based on `CONFIG.AI_SUMMARY_PROVIDER`
+- `openai-responses.js`: AI news summaries via OpenAI Responses API (`gpt-5.6-terra` with the `web_search` tool). Default provider.
+- `perplexity.js`: AI news summaries via Perplexity (SONAR model with web search). Alternate provider.
 - `discord.js`: Discord interaction utilities (signature verification, deferred responses, follow-ups)
 
 **Middleware: `src/middleware/`**
@@ -351,10 +353,19 @@ wrangler kv:key get --binding=CACHE "stock:price:AAPL"  # Get specific cached va
 - Used for: Current price, market status
 - Cache: 1 minute TTL
 
-**OpenAI (AI Summaries):**
-- Pay-per-token (~$0.01-0.05 per request with gpt-4o-mini)
+**OpenAI (AI Summaries) — default provider:**
+- Model: `gpt-5.6-terra` via the Responses API, `web_search` tool forced on every request
+- Pay-per-token. Web search dominates input cost: measured ~8.5k-30k input tokens per call (the injected search results) against only ~40-250 tokens of visible output
 - Used for: News summaries with web search
 - Cache: 8 hours TTL (most expensive, longest cache)
+- Switch providers with one line: `CONFIG.AI_SUMMARY_PROVIDER` in `src/config.js` (`'openai'` or `'perplexity'`)
+
+> **Gotcha — reasoning tokens count against `max_output_tokens`.** `gpt-5.6-terra` is a
+> reasoning model and burns ~500 tokens thinking before it writes anything. The original
+> ceiling of 800 (carried over from `gpt-5.4`) left ~80 tokens for the answer and truncated
+> summaries mid-sentence, with `status: "completed"` and `incomplete_details: null` — so
+> nothing surfaced as an error. It is now 3000. If you change models again, re-check this:
+> read `usage.output_tokens_details.reasoning_tokens` on a real call before trusting the cap.
 
 **Cost Optimization:**
 - Rate limiting (30s/user) reduces API calls

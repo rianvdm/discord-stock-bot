@@ -20,7 +20,7 @@ describe('OpenAI Responses Service', () => {
 
     it('should instruct model to search and return plain text', () => {
       const prompt = formatPrompt('NET', 'Cloudflare Inc.');
-      expect(prompt).toContain('72 hours');
+      expect(prompt).toContain('7 days');
       expect(prompt).toContain('800 characters');
       expect(prompt).toContain('NO citations');
     });
@@ -41,7 +41,7 @@ describe('OpenAI Responses Service', () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
-          model: 'gpt-5.4',
+          model: 'gpt-5.6-terra',
           output_text: 'Apple reported strong earnings. Stock is up 5%.',
         }),
       });
@@ -56,10 +56,11 @@ describe('OpenAI Responses Service', () => {
       expect(options.headers['Content-Type']).toBe('application/json');
 
       const body = JSON.parse(options.body);
-      expect(body.model).toBe('gpt-5.4');
+      expect(body.model).toBe('gpt-5.6-terra');
       expect(body.tools).toEqual([{ type: 'web_search' }]);
       expect(body.store).toBe(false);
-      expect(body.max_output_tokens).toBe(800);
+      // Headroom for gpt-5.6-terra's reasoning tokens, which count against this budget
+      expect(body.max_output_tokens).toBe(3000);
       expect(body.instructions).toContain('financial news analyst');
       expect(body.input).toContain('Apple Inc.');
     });
@@ -68,7 +69,7 @@ describe('OpenAI Responses Service', () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
-          model: 'gpt-5.4',
+          model: 'gpt-5.6-terra',
           output_text: 'Apple reported strong earnings. Stock is up 5%.',
         }),
       });
@@ -81,7 +82,7 @@ describe('OpenAI Responses Service', () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
-          model: 'gpt-5.4',
+          model: 'gpt-5.6-terra',
           output: [
             { type: 'web_search_call' },
             {
@@ -102,7 +103,7 @@ describe('OpenAI Responses Service', () => {
       fetchSpy.mockResolvedValue({
         ok: true,
         json: async () => ({
-          model: 'gpt-5.4',
+          model: 'gpt-5.6-terra',
           output_text: '',
         }),
       });

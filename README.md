@@ -11,7 +11,7 @@ A powerful Discord bot that provides real-time stock and cryptocurrency informat
 - **₿ Cryptocurrency Support**: Bitcoin, Ethereum, and major cryptocurrencies with 24/7 trading
 - **🕐 Market Status Detection**: Automatically detects market hours using real-time quote freshness
 - **📉 30-Day Trend Visualization**: Beautiful ASCII sparkline charts showing price movement
-- **🤖 AI News Summaries**: Perplexity SONAR-powered summaries of recent news with sentiment analysis
+- **🤖 AI News Summaries**: OpenAI `gpt-5.6-terra` with web search, summarizing recent news with sentiment analysis (Perplexity SONAR available as an alternate provider)
 - **⚡ Smart Caching**: Reduces API costs with intelligent multi-tier caching (1min/5min/1hr/8hr)
 - **🛡️ Rate Limiting**: Built-in rate limiting (1 query every 60 seconds per user) prevents abuse
 - **🎨 Rich Embeds**: Color-coded Discord embeds (green/red/gray) with detailed information
@@ -96,7 +96,8 @@ Bot: ₿ BTC - Bitcoin
 - **Discord Bot Token** (from [Discord Developer Portal](https://discord.com/developers/applications))
 - **Massive.com API Key** (for historical stock data, free tier: 5 calls/min)
 - **Finnhub API Key** (for real-time quotes & market status, free tier: 60 calls/min)
-- **Perplexity API Key** (for AI summaries with web search)
+- **OpenAI API Key** (for AI summaries with web search — the default provider)
+- **Perplexity API Key** (optional; only needed if you set `AI_SUMMARY_PROVIDER` to `'perplexity'`)
 
 ### Installation
 
@@ -122,7 +123,8 @@ Bot: ₿ BTC - Bitcoin
 4. **Get API Keys**
    - **Massive.com**: Sign up at https://massive.com/ (formerly Polygon.io) for historical data
    - **Finnhub**: Sign up at https://finnhub.io/ for real-time quotes
-   - **Perplexity**: Get API key from https://www.perplexity.ai/settings/api
+   - **OpenAI**: Get API key from https://platform.openai.com/api-keys (default AI summary provider)
+   - **Perplexity** (optional): Get API key from https://www.perplexity.ai/settings/api
 
 5. **Configure Local Development**
 
@@ -132,7 +134,8 @@ Bot: ₿ BTC - Bitcoin
    DISCORD_PUBLIC_KEY=your_public_key_here
    MASSIVE_API_KEY=your_massive_api_key_here
    FINNHUB_API_KEY=your_finnhub_api_key_here
-   PERPLEXITY_API_KEY=your_perplexity_api_key_here
+   OPENAI_API_KEY=your_openai_api_key_here
+   PERPLEXITY_API_KEY=your_perplexity_api_key_here   # optional, only for AI_SUMMARY_PROVIDER='perplexity'
    DEV_MODE=true
    ```
 
@@ -217,9 +220,9 @@ For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUI
          │          │          │              │
          ↓          ↓          ↓              ↓
     ┌──────────┐ ┌────────┐ ┌────────┐ ┌──────────┐
-    │ Massive  │ │Finnhub │ │Perplexi│ │Cloudflare│
-    │   .com   │ │  API   │ │  ty    │ │    KV    │
-    │   API    │ │        │ │ SONAR  │ │ Storage  │
+    │ Massive  │ │Finnhub │ │ OpenAI │ │Cloudflare│
+    │   .com   │ │  API   │ │ 5.6-   │ │    KV    │
+    │   API    │ │        │ │ terra  │ │ Storage  │
     └──────────┘ └────────┘ └────────┘ └──────────┘
 ```
 
@@ -231,7 +234,8 @@ For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUI
   - Discord Interactions API (slash commands)
   - Massive.com API (historical stock data)
   - Finnhub API (real-time quotes & market status)
-  - Perplexity API (AI summaries with web search using SONAR model)
+  - OpenAI Responses API (AI summaries — `gpt-5.6-terra` with the `web_search` tool). Default provider.
+  - Perplexity API (alternate AI summary provider, SONAR model with web search)
 - **Storage**: Cloudflare KV (caching & rate limiting)
 - **Testing**: Vitest (280 tests, comprehensive coverage)
 
@@ -253,7 +257,9 @@ discord-stock-bot/
 │   │   ├── massiveCrypto.js     # Massive.com API client (crypto)
 │   │   ├── finnhub.js           # Finnhub API client (stocks)
 │   │   ├── finnhubCrypto.js     # Finnhub API client (crypto)
-│   │   ├── perplexity.js        # Perplexity API client
+│   │   ├── ai-summary.js        # Provider router (OpenAI | Perplexity)
+│   │   ├── openai-responses.js  # OpenAI Responses API client (default)
+│   │   ├── perplexity.js        # Perplexity API client (alternate)
 │   │   └── discord.js           # Discord API utilities
 │   ├── middleware/
 │   │   ├── rateLimit.js         # Rate limiting logic
@@ -339,7 +345,7 @@ The bot uses a four-tier caching strategy to optimize API costs and response tim
 The bot includes comprehensive performance instrumentation:
 
 **Automated Metrics:**
-- **[PERF]** API response times (Massive.com & Perplexity) with attempt tracking
+- **[PERF]** API response times (Massive.com & the active AI summary provider) with attempt tracking
 - **[CACHE HIT/MISS]** Cache operations with duration and data size
 - **[INFO]** End-to-end request duration tracking
 - **[WARN/ERROR]** Performance issues and bottlenecks
@@ -358,7 +364,7 @@ wrangler tail | grep CACHE
 - Cached requests: <1 second
 - Uncached requests: <3 seconds (with deferred responses)
 - Cache operations: <50ms
-- API calls: Massive.com <2s, Perplexity <15s
+- API calls: Massive.com <2s, AI summary provider <15s
 
 ## ⚙️ Configuration
 
@@ -370,7 +376,8 @@ Set via `wrangler secret put <NAME>`:
 - `DISCORD_PUBLIC_KEY` - Discord application public key
 - `MASSIVE_API_KEY` - Massive.com API key (historical data)
 - `FINNHUB_API_KEY` - Finnhub API key (real-time quotes)
-- `PERPLEXITY_API_KEY` - Perplexity API key
+- `OPENAI_API_KEY` - OpenAI API key (AI summaries — default provider)
+- `PERPLEXITY_API_KEY` - Perplexity API key (only needed if `AI_SUMMARY_PROVIDER` is `'perplexity'`)
 - `DEV_MODE` - Set to "true" to skip signature verification in local dev
 
 ### Configuration Constants
@@ -387,7 +394,9 @@ export const CONFIG = {
   DEFAULT_PERIOD_DAYS: 7,              // Historical data period
   MASSIVE_TIMEOUT: 10000,              // Massive.com API timeout (ms)
   FINNHUB_TIMEOUT: 5000,               // Finnhub API timeout (ms)
+  OPENAI_TIMEOUT: 30000,               // OpenAI timeout (ms)
   PERPLEXITY_TIMEOUT: 30000,           // Perplexity timeout (ms)
+  AI_SUMMARY_PROVIDER: 'openai',       // 'openai' or 'perplexity' — one line to switch
   EMBED_COLOR_POSITIVE: 0x00ff00,      // Green
   EMBED_COLOR_NEGATIVE: 0xff0000,      // Red
   EMBED_COLOR_NEUTRAL: 0x808080,       // Gray
@@ -418,8 +427,9 @@ export const CONFIG = {
 - Check Massive.com API status: https://massive.com/
 
 **AI summary unavailable**
-- Perplexity API may be rate limited or experiencing issues
-- Check your Perplexity API key is valid and has credits
+- The AI provider API may be rate limited or experiencing issues
+- Check the API key for the active provider (`OPENAI_API_KEY` by default) is valid and has credits
+- Confirm `CONFIG.AI_SUMMARY_PROVIDER` matches the key you've set — an `openai` provider with only a Perplexity key will fail
 - The bot will still show stock data even if AI summary fails
 
 ### Debugging
@@ -458,13 +468,16 @@ With the free tiers:
 **Finnhub**
 - Free: 60 API calls/minute (real-time quotes)
 
-**Perplexity**
+**OpenAI** (default provider)
+- Pay per token with `gpt-5.6-terra`
+- Web search dominates input cost: ~8.5k input tokens per call (the injected search results) against only ~40-250 output tokens
+- Smart caching (8h TTL on summaries) reduces costs significantly
+
+**Perplexity** (alternate provider)
 - Pay per request (~$0.005-0.01 per request with SONAR model)
-- Smart caching reduces costs significantly
 
 **Estimated Monthly Cost:**
-- Small server (<100 active users): $3-10/month (primarily Perplexity)
-- Medium server (100-1000 users): $15-50/month
+- The $3-10/month (small server) and $15-50/month (medium server) figures below the AI line were measured against Perplexity SONAR and have **not** been re-measured since the move to OpenAI. Treat them as a rough order of magnitude only.
 
 ## 🔒 Security
 
@@ -503,7 +516,8 @@ ISC
 
 - **Massive.com** (formerly Polygon.io) for historical stock market data
 - **Finnhub** for real-time quotes and market status
-- **Perplexity** for AI-powered summaries with web search using SONAR model
+- **OpenAI** for AI-powered summaries with web search using `gpt-5.6-terra`
+- **Perplexity** for the alternate AI summary provider (SONAR model with web search)
 - **Cloudflare** for edge computing platform
 - **Discord** for the bot platform
 

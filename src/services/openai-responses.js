@@ -1,5 +1,5 @@
 // ABOUTME: OpenAI Responses API client for generating AI-powered news summaries about stocks
-// ABOUTME: Uses raw fetch to POST /v1/responses with gpt-5.4 and web_search tool
+// ABOUTME: Uses raw fetch to POST /v1/responses with gpt-5.6-terra and web_search tool
 // ABOUTME: Includes timeout handling, error classification, and response validation
 
 import { CONFIG } from '../config.js';
@@ -33,12 +33,17 @@ export async function generateAISummary(ticker, companyName, apiKey) {
           'Authorization': `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: 'gpt-5.4',
+          model: 'gpt-5.6-terra',
           instructions: 'You are a financial news analyst. Use succinct, plain language focused on accuracy and professionalism.',
           input: prompt,
           tools: [{ type: 'web_search' }],
           store: false,
-          max_output_tokens: 800,
+          // gpt-5.6-terra is a reasoning model, and reasoning tokens count against this
+          // budget. Observed ~500 reasoning tokens per call, so a ceiling of 800 left too
+          // little room and truncated summaries mid-sentence. The visible summary is capped
+          // at 800 *characters* by the prompt (~200 tokens); the rest is reasoning headroom.
+          // Billing is per token actually generated, so a higher ceiling is not a higher cost.
+          max_output_tokens: 3000,
         }),
       }),
       new Promise((_, reject) =>
