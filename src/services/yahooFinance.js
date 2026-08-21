@@ -37,7 +37,10 @@ export class YahooQuoteError extends Error {
  * @throws {YahooQuoteError} If the symbol is unknown, the request fails, or the payload has no price
  */
 export async function fetchYahooQuote(ticker) {
-  const url = `${YAHOO_CHART_URL}/${encodeURIComponent(ticker)}?interval=1d&range=1d`;
+  // A 5-day window of daily bars. The range has to cover more than one session
+  // because the previous close is read from the bar series, not from the meta
+  // block — see readPreviousClose.
+  const url = `${YAHOO_CHART_URL}/${encodeURIComponent(ticker)}?interval=1d&range=5d`;
   const startTime = Date.now();
 
   let response;
@@ -88,16 +91,16 @@ export async function fetchYahooQuote(ticker) {
     throw new YahooQuoteError(`Yahoo Finance error for ${ticker}: ${description}`, { isUnknownSymbol });
   }
 
-  const meta = payload?.chart?.result?.[0]?.meta;
+  const result = payload?.chart?.result?.[0];
+  const meta = result?.meta;
 
   if (!meta || typeof meta.regularMarketPrice !== 'number') {
     throw new YahooQuoteError(`Yahoo Finance returned no price for ${ticker}`);
   }
 
-  const previousClose =
-    typeof meta.chartPreviousClose === 'number' ? meta.chartPreviousClose : meta.previousClose;
+  const previousClose = readPreviousClose(result);
 
-  if (typeof previousClose !== 'number' || previousClose === 0) {
+  if (previousClose === null) {
     throw new YahooQuoteError(`Yahoo Finance returned no previous close for ${ticker}`);
   }
 
@@ -124,6 +127,36 @@ export async function fetchYahooQuote(ticker) {
     companyName: meta.longName || meta.shortName || ticker,
     source: 'yahoo',
   };
+}
+
+/**
+ * Read the previous session's closing price from the daily bar series.
+ *
+ * `meta.chartPreviousClose` looks like the right field and is not: it is the close
+ * of the bar immediately *before the chart's first bar*, so its value depends on the
+ * requested range, and at `range=1d` it returns a pre-market reference rather than
+ * the prior session's close. On 2026-08-21 that reported WMT down $1.06 when it was
+ * down $1.31, because the stock had gapped 10 points on earnings the day before.
+ *
+ * The bars themselves are unambiguous. The last one is the session that
+ * `regularMarketPrice` belongs to — during a session it is today's in-progress bar,
+ * and outside one it is the most recent close — so the previous close is the last
+ * valid close before it.
+ *
+ * @param {Object} result - Yahoo's chart.result[0]
+ * @returns {number|null} Previous session close, or null if the series cannot supply one
+ */
+function readPreviousClose(result) {
+  const closes = result?.indicators?.quote?.[0]?.close;
+
+  if (!Array.isArray(closes)) {
+    return null;
+  }
+
+  // Yahoo emits null for sessions it has no data for; they are not closes.
+  const valid = closes.filter(close => typeof close === 'number' && close > 0);
+
+  return valid.length >= 2 ? valid[valid.length - 2] : null;
 }
 
 /**

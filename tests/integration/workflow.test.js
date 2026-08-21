@@ -125,9 +125,11 @@ describe('Integration: Complete Bot Workflows', () => {
         });
       }
 
-      // Yahoo Finance chart endpoint (primary live quote, also carries the company name)
+      // Yahoo Finance chart endpoint (primary live quote, also carries the company name).
+      // The previous close is read from the daily bar series, not from the meta block.
       if (url.includes('query1.finance.yahoo.com/v8/finance/chart')) {
         const now = Math.floor(Date.now() / 1000);
+        const day = 86400;
         return Promise.resolve({
           ok: true,
           status: 200,
@@ -138,13 +140,14 @@ describe('Integration: Complete Bot Workflows', () => {
                   meta: {
                     symbol: 'AAPL',
                     regularMarketPrice: 177.25,
-                    chartPreviousClose: 175.43,
                     regularMarketTime: now,
                     longName: 'Apple Inc.',
                     currentTradingPeriod: {
                       regular: { start: now - 3600, end: now + 3600 },
                     },
                   },
+                  timestamp: [now - 2 * day, now - day, now],
+                  indicators: { quote: [{ close: [174.8, 175.43, 177.25] }] },
                 },
               ],
               error: null,

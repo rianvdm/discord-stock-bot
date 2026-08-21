@@ -20,7 +20,7 @@ export function getEmbedColor(changePercent) {
 
 /**
  * Builds a rich embed for stock data
- * @param {Object} stockData - Stock price and company information (always from Finnhub)
+ * @param {Object} stockData - Stock price and company information from the quote router
  * @param {string} chart - Formatted ASCII chart with labels
  * @param {string|null} aiSummary - AI-generated news summary (optional)
  * @param {boolean} marketOpen - Whether the market is currently open
@@ -36,7 +36,7 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
     isDelayed
   } = stockData;
 
-  // Price data always comes from Finnhub (most up-to-date)
+  // Price data comes from the quote router: Yahoo first, Finnhub as fallback
   const displayPrice = currentPrice;
   const displayChange = changeAmount;
   const displayChangePercent = changePercent;
@@ -51,7 +51,7 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
   const priceChange = `${formattedChangeAmount} (${changeSign}${displayChangePercent.toFixed(2)}%)`;
 
   // Build fields array - show "Current Price" when market is open, "Previous Close" when closed.
-  // isDelayed means the live quote was unavailable (e.g. Finnhub throttled us) and this price
+  // isDelayed means every live quote source was unavailable and this price
   // is the most recent close from history — say so rather than implying it is live.
   const priceLabel = isDelayed
     ? '💰 Last Close (live quote unavailable)'
@@ -103,7 +103,7 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
     color: color,
     fields: fields,
     footer: {
-      text: `Data: Finnhub & Massive.com • AI: ${CONFIG.AI_SUMMARY_PROVIDER === 'openai' ? 'OpenAI' : 'Perplexity'}`
+      text: `Data: Yahoo Finance & Massive.com • AI: ${CONFIG.AI_SUMMARY_PROVIDER === 'openai' ? 'OpenAI' : 'Perplexity'}`
     },
     timestamp: new Date().toISOString()
   };
@@ -218,7 +218,7 @@ export function buildHelpEmbed() {
       },
       {
         name: '📊 Data Sources',
-        value: `**Real-Time Quotes:** Finnhub (live prices & market status)\n**Historical Data:** Massive.com (30-day trends)\n**AI Summaries:** ${CONFIG.AI_SUMMARY_PROVIDER === 'openai' ? 'OpenAI (gpt-5.6-terra with web search)' : 'Perplexity SONAR with web search'}`,
+        value: `**Real-Time Quotes:** Yahoo Finance for stocks, Finnhub for crypto\n**Historical Data:** Massive.com (30-day trends)\n**AI Summaries:** ${CONFIG.AI_SUMMARY_PROVIDER === 'openai' ? 'OpenAI (gpt-5.6-terra with web search)' : 'Perplexity SONAR with web search'}`,
         inline: false
       },
       {

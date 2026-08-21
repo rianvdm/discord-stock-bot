@@ -140,7 +140,7 @@ describe('buildStockEmbed', () => {
     const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
 
     expect(embed.footer).toBeDefined();
-    expect(embed.footer.text).toContain('Finnhub');
+    expect(embed.footer.text).toContain('Yahoo Finance');
     expect(embed.footer.text).toContain('Massive.com');
   });
 
