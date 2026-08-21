@@ -397,8 +397,20 @@ wrangler kv:key get --binding=CACHE "stock:price:AAPL"  # Get specific cached va
 - No key, no signup, no published quota
 - Used for: Current price, previous close, company name, exchange session window
 - Cache: 1 minute TTL (`stock:market_status:{ticker}`), plus the name under `stock:company_profile:{ticker}` for 3 days
-- Endpoint: `query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1d`
+- Endpoint: `query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=5d`
 - Requires a browser `User-Agent`; Yahoo rejects requests that do not look like one
+- Yahoo rate limits by source IP. Cloudflare's egress was fine at 20 rapid calls, but a laptop
+  running repeated `curl` checks got 429'd, so throttle any manual probing
+
+> **Gotcha — `meta.chartPreviousClose` is not the previous session's close.** It is the close of
+> the bar immediately *before the chart's first bar*, so it moves with `range`: for WMT it read
+> 114.30 at `range=2d` and 115.27 at `range=5d`. At `range=1d` it returned a pre-market
+> reference (103.5925) rather than the prior close (103.84), understating a post-earnings gap.
+> It happens to be correct for a stock that did not gap, which is exactly why this survived a
+> first round of testing. Read the previous close from `indicators.quote[0].close` instead —
+> `readPreviousClose()` in `yahooFinance.js` takes the last valid close before the current
+> session's bar. The `range` therefore has to cover more than one session; do not shrink it
+> back to `1d` to save bytes.
 
 **Finnhub (Real-time Quotes) — fallback:**
 - Free tier: 60 calls/minute, but see the egress note at the top of this file
