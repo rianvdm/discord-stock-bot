@@ -2,29 +2,33 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-> ## ⚠️ 2026-08-18 incident — Finnhub 429s surfaced as "ticker not found"
+> ## ⚠️ Finnhub is throttled from Cloudflare egress — Yahoo Finance serves the live quote
 >
-> **Root cause (confirmed from live logs).** Finnhub returns **429** on `/quote`, so
-> `market_status` was missing and `src/commands/stock.js` reported the ticker as not found.
-> Captured error: `[ERROR] Failed to fetch market_status { error: 'Finnhub API rate limit
-> exceeded' }`, while Massive.com returned all 30 history bars for the same ticker.
->
-> **It is throttling by source, not your quota.** During the failures the Worker was 429'd
-> while the *same key* from a laptop returned `200` with `x-ratelimit-remaining: 44` of `60`.
-> Workers egress from shared Cloudflare IPs, so requests get throttled independently of the
-> key's own usage. This is why it looked ticker-specific — `/stock AAPL` passing and
+> **What happens.** Finnhub returns **429** to requests leaving Cloudflare's shared egress IPs,
+> independently of this key's own quota. The 429 is a plain nginx HTML page carrying no
+> `x-ratelimit-*` headers, and the calls that do get through report the key nearly untouched.
+> Measured from the PDX colo on 2026-08-21: 13 of 20 `/quote` calls returned 429 while the
+> successes reported `x-ratelimit-remaining: 58` of `60`. The same key from a laptop returns
+> `200` every time. This is why it once looked ticker-specific — `/stock AAPL` passing and
 > `/stock NET` failing was which egress IP served the request, not which ticker.
 >
-> **Fixed by** (a) retrying 429s in `fetchMarketStatus` with jittered backoff, and (b) falling
-> back to the last close from history when the live quote is unavailable, labelled as delayed,
-> instead of throwing NOT_FOUND. `FinnhubRateLimitError.isRateLimit` lets callers tell
-> throttling apart from a genuinely unknown ticker. Regression cover:
-> `tests/commands/stock-degradation.test.js`.
+> **What the bot does about it.** `src/services/quote.js` tries Yahoo Finance's chart endpoint
+> first (20 of 20 from the same colo, all under 125ms, no key required), falls back to Finnhub,
+> and finally falls back to the last close from Massive history labelled as delayed. One Yahoo
+> call carries the price, the previous close, the company name and the exchange's session
+> window, so there is no separate company-profile call to make.
 >
-> **Two dead ends recorded so they are not repeated.** An early diagnosis blamed Finnhub
-> `/quote` being broken — wrong; it rested on `market_status` being absent from KV, which only
-> reflects its 60-second TTL. A second blamed an uncommitted script-API hotfix being reverted
-> by a deploy — also wrong; the same failure occurs on the pre-deploy version.
+> **The risk to watch.** `v8/finance/chart` is Yahoo's own website API, not a published one.
+> `v7/finance/quote` has required a crumb and cookie since 2023 and the chart endpoint could be
+> gated the same way. If that happens, quotes degrade to Finnhub and then to last close, and
+> the durable fixes are a relay off Cloudflare's IPs (the pattern `discogs-mcp` uses) or a
+> licensed provider. Massive cannot take over: `/v2/snapshot` and `/v2/last/trade` both return
+> `403 NOT_AUTHORIZED` on the current plan, so its free tier is aggregates only.
+>
+> **Dead ends recorded so they are not repeated.** During the 2026-08-18 outage one diagnosis
+> blamed Finnhub `/quote` being broken — wrong; it rested on `market_status` being absent from
+> KV, which only reflects its 60-second TTL. A second blamed an uncommitted script-API hotfix
+> being reverted by a deploy — also wrong; the same failure occurs on the pre-deploy version.
 >
 > ### Deploy notes that still apply
 >
@@ -33,9 +37,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 >   In a non-interactive shell wrangler auto-answers **yes**. Cloudflare does not expose
 >   per-version script download, so anything that only ever existed in an API upload cannot be
 >   recovered — check `metadata.source` on the newest version before deploying.
-> * **There are no retroactive logs.** No observability, no logpush. Use
->   `wrangler tail discord-stock-bot` (worker name is a **positional** arg, not `--name`) and
->   reproduce live. Enabling `[observability]` in `wrangler.toml` would remove this blind spot.
+> * **Logs are retained.** `[observability]` is enabled in `wrangler.toml` at a head sampling
+>   rate of 1, so past invocations can be queried from the dashboard or the telemetry API.
+>   `wrangler tail discord-stock-bot` still works for live tailing (worker name is a
+>   **positional** arg, not `--name`).
 > * Local debugging needs `MASSIVE_API_KEY` and `FINNHUB_API_KEY` in `.env` (gitignored).
 > * Roll back with `wrangler rollback --name discord-stock-bot`, or deploy a known-good
 >   `version_id` at 100%.
@@ -117,7 +122,7 @@ A Discord bot providing real-time stock and cryptocurrency information with AI-p
 
 ### Testing
 ```bash
-npm test                    # Run all tests once (280 tests)
+npm test                    # Run all tests once (398 tests)
 npm run test:watch          # Run tests in watch mode
 npm test -- tests/commands/stock.test.js  # Run specific test file
 npm test -- --coverage      # Run with coverage report
@@ -177,7 +182,9 @@ Discord → Cloudflare Worker → Command Router → Rate Limiter → Cache Laye
 **Services: `src/services/`**
 - `massive.js`: Historical stock data (Massive.com API, formerly Polygon.io)
 - `massiveCrypto.js`: Historical crypto data (Massive.com API)
-- `finnhub.js`: Real-time stock quotes & market status (Finnhub API)
+- `quote.js`: Live-quote router — Yahoo first, Finnhub second. The only quote entry point `stock.js` calls
+- `yahooFinance.js`: Live stock quote, previous close, company name, and session window (Yahoo Finance chart API, no key)
+- `finnhub.js`: Real-time stock quotes (Finnhub API). Fallback quote source
 - `finnhubCrypto.js`: Real-time crypto quotes (Finnhub API)
 - `ai-summary.js`: Provider router — delegates to OpenAI or Perplexity based on `CONFIG.AI_SUMMARY_PROVIDER`
 - `openai-responses.js`: AI news summaries via OpenAI Responses API (`gpt-5.6-terra` with the `web_search` tool). Default provider.
@@ -252,7 +259,7 @@ Promise.all([setCached(...), ...]).catch(error => console.warn(...));
 - Mock KV namespaces: `{ get: vi.fn(), put: vi.fn(), delete: vi.fn() }`
 - Mock environment: `{ RATE_LIMITS: mockKV, CACHE: mockKV, MASSIVE_API_KEY: '...' }`
 - Test error cases and edge cases thoroughly
-- Current: 280 tests (269 unit, 11 integration)
+- Current: 398 tests across 23 files
 
 **Running Tests:**
 ```bash
@@ -386,10 +393,18 @@ wrangler kv:key get --binding=CACHE "stock:price:AAPL"  # Get specific cached va
 - Used for: 30-day historical price data
 - Cache: 1 hour TTL
 
-**Finnhub (Real-time Quotes):**
-- Free tier: 60 calls/minute
-- Used for: Current price, market status
+**Yahoo Finance (Real-time Quotes) — default source:**
+- No key, no signup, no published quota
+- Used for: Current price, previous close, company name, exchange session window
+- Cache: 1 minute TTL (`stock:market_status:{ticker}`), plus the name under `stock:company_profile:{ticker}` for 3 days
+- Endpoint: `query1.finance.yahoo.com/v8/finance/chart/{ticker}?interval=1d&range=1d`
+- Requires a browser `User-Agent`; Yahoo rejects requests that do not look like one
+
+**Finnhub (Real-time Quotes) — fallback:**
+- Free tier: 60 calls/minute, but see the egress note at the top of this file
+- Used for: Current price when Yahoo is unavailable
 - Cache: 1 minute TTL
+- Carries no company name, so a Finnhub-sourced quote leaves the cached profile in charge of it
 
 **OpenAI (AI Summaries) — default provider:**
 - Model: `gpt-5.6-terra` via the Responses API, `web_search` tool forced on every request

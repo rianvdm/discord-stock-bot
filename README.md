@@ -95,7 +95,7 @@ Bot: ₿ BTC - Bitcoin
 - **Cloudflare Account** (free tier works great)
 - **Discord Bot Token** (from [Discord Developer Portal](https://discord.com/developers/applications))
 - **Massive.com API Key** (for historical stock data, free tier: 5 calls/min)
-- **Finnhub API Key** (for real-time quotes & market status, free tier: 60 calls/min)
+- **Finnhub API Key** (fallback live quotes, free tier: 60 calls/min. Yahoo Finance is the primary source and needs no key)
 - **OpenAI API Key** (for AI summaries with web search — the default provider)
 - **Perplexity API Key** (optional; only needed if you set `AI_SUMMARY_PROVIDER` to `'perplexity'`)
 
@@ -151,7 +151,7 @@ Bot: ₿ BTC - Bitcoin
    ```bash
    npm test
    ```
-   You should see 280 tests passing ✅
+   You should see 398 tests passing ✅
 
 8. **Start Local Development**
    ```bash
@@ -210,7 +210,7 @@ For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUI
 │  │  3. Cache Layer (KV Read)                    │  │
 │  │  4. Data Orchestrator                        │  │
 │  │     - Stock Price Service (Massive.com)     │  │
-│  │     - Real-Time Quotes (Finnhub)            │  │
+│  │     - Live Quotes (Yahoo → Finnhub)         │  │
 │  │     - Historical Data Service               │  │
 │  │     - AI Summary Service                    │  │
 │  │  5. Response Formatter                       │  │
@@ -233,11 +233,12 @@ For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUI
 - **APIs**:
   - Discord Interactions API (slash commands)
   - Massive.com API (historical stock data)
-  - Finnhub API (real-time quotes & market status)
+  - Yahoo Finance chart API (live quotes, company names, session windows)
+  - Finnhub API (fallback live quotes)
   - OpenAI Responses API (AI summaries — `gpt-5.6-terra` with the `web_search` tool). Default provider.
   - Perplexity API (alternate AI summary provider, SONAR model with web search)
 - **Storage**: Cloudflare KV (caching & rate limiting)
-- **Testing**: Vitest (280 tests, comprehensive coverage)
+- **Testing**: Vitest (398 tests, comprehensive coverage)
 
 ## 🔧 Development
 
@@ -255,7 +256,9 @@ discord-stock-bot/
 │   ├── services/
 │   │   ├── massive.js           # Massive.com API client (stocks)
 │   │   ├── massiveCrypto.js     # Massive.com API client (crypto)
-│   │   ├── finnhub.js           # Finnhub API client (stocks)
+│   │   ├── quote.js             # Live-quote router (Yahoo → Finnhub)
+│   │   ├── yahooFinance.js      # Yahoo Finance chart client (primary)
+│   │   ├── finnhub.js           # Finnhub API client (fallback, stocks)
 │   │   ├── finnhubCrypto.js     # Finnhub API client (crypto)
 │   │   ├── ai-summary.js        # Provider router (OpenAI | Perplexity)
 │   │   ├── openai-responses.js  # OpenAI Responses API client (default)
@@ -304,7 +307,7 @@ npm run test:watch
 npm test -- --coverage
 ```
 
-Current test results: **280 tests passing** ✅
+Current test results: **398 tests passing** ✅
 - 269 unit tests
 - 11 integration tests
 
@@ -465,8 +468,11 @@ With the free tiers:
 **Massive.com**
 - Free: 5 API calls/minute (historical data)
 
-**Finnhub**
-- Free: 60 API calls/minute (real-time quotes)
+**Yahoo Finance** (primary live quotes)
+- No key, no signup, no published quota
+
+**Finnhub** (fallback live quotes)
+- Free: 60 API calls/minute on the key, but requests leaving Cloudflare's shared egress IPs are throttled independently of it — see CLAUDE.md
 
 **OpenAI** (default provider)
 - Pay per token with `gpt-5.6-terra`
@@ -515,7 +521,8 @@ ISC
 ## 🙏 Acknowledgments
 
 - **Massive.com** (formerly Polygon.io) for historical stock market data
-- **Finnhub** for real-time quotes and market status
+- **Yahoo Finance** for live quotes, company names, and exchange session windows
+- **Finnhub** for fallback live quotes
 - **OpenAI** for AI-powered summaries with web search using `gpt-5.6-terra`
 - **Perplexity** for the alternate AI summary provider (SONAR model with web search)
 - **Cloudflare** for edge computing platform

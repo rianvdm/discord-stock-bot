@@ -12,6 +12,16 @@ main = "src/index.js"
 compatibility_date = "2024-01-01"
 
 # ============================================================================
+# Observability - retroactive logs
+# ============================================================================
+# Without this the Worker keeps no logs, so a production failure can only be
+# investigated by reproducing it live under `wrangler tail`. That is what turned
+# the 2026-08-18 Finnhub outage into an hours-long guess.
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+# ============================================================================
 # KV Namespaces - Key-Value storage for caching and rate limiting
 # ============================================================================
 

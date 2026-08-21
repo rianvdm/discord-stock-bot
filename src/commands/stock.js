@@ -8,7 +8,7 @@ import { BotError, ErrorTypes, formatErrorResponse, logError } from '../utils/er
 import { getCached, setCached } from '../middleware/cache.js';
 import { fetchHistoricalData, suggestTickers, getCompanyName } from '../services/massive.js';
 import { generateAISummary } from '../services/ai-summary.js';
-import { fetchMarketStatus, fetchCompanyProfile } from '../services/finnhub.js';
+import { fetchQuote } from '../services/quote.js';
 import { formatChartWithLabels } from '../utils/chartGenerator.js';
 import { buildStockEmbed } from '../utils/embedBuilder.js';
 import { CONFIG } from '../config.js';
@@ -154,23 +154,15 @@ export async function fetchStockData(ticker, env) {
       );
     }
 
-    // Fetch market status/price from Finnhub if not cached (CRITICAL - contains price data)
+    // Fetch the live quote if not cached (CRITICAL - contains price data).
+    // Yahoo is tried first and carries the company name, so a successful quote
+    // also removes the need for a separate company-profile call.
     if (!cachedMarketStatus) {
-      console.log('[INFO] Fetching real-time quote from Finnhub', { ticker });
+      console.log('[INFO] Fetching live quote', { ticker });
       fetchPromises.push(
-        fetchMarketStatus(ticker, finnhubApiKey)
+        fetchQuote(ticker, finnhubApiKey)
           .then(data => ({ type: 'market_status', data }))
           .catch(error => ({ type: 'market_status', error }))
-      );
-    }
-
-    // Fetch company profile if not cached (for company name)
-    if (!cachedCompanyProfile) {
-      console.log('[INFO] Fetching company profile from Finnhub', { ticker });
-      fetchPromises.push(
-        fetchCompanyProfile(ticker, finnhubApiKey)
-          .then(data => ({ type: 'company_profile', data }))
-          .catch(error => ({ type: 'company_profile', error }))
       );
     }
 
@@ -181,8 +173,8 @@ export async function fetchStockData(ticker, env) {
     let historyData = cachedHistory;
     let summaryData = cachedSummary;
     let marketStatusData = cachedMarketStatus;
-    let companyProfileData = cachedCompanyProfile;
     let marketStatusRateLimited = false;
+    let quoteSaysUnknownSymbol = false;
 
     for (const result of fetchResults) {
       if (result.error) {
@@ -193,12 +185,17 @@ export async function fetchStockData(ticker, env) {
             // if we cannot fall back to history either.
             marketStatusRateLimited = true;
           }
+          if (result.type === 'market_status' && result.error.isUnknownSymbol) {
+            // Yahoo looked the symbol up and found nothing, which outranks a
+            // throttled Finnhub when deciding what to tell the user.
+            quoteSaysUnknownSymbol = true;
+          }
           console.error(`[ERROR] Failed to fetch ${result.type}`, {
             ticker,
             error: result.error.message
           });
-        } else if (result.type === 'summary' || result.type === 'company_profile') {
-          // AI summary or company profile failed - not critical
+        } else if (result.type === 'summary') {
+          // AI summary failed - not critical
           console.warn(`[WARN] ${result.type} failed (non-critical)`, {
             ticker,
             error: result.error.message
@@ -212,8 +209,6 @@ export async function fetchStockData(ticker, env) {
           summaryData = result.data;
         } else if (result.type === 'market_status') {
           marketStatusData = result.data;
-        } else if (result.type === 'company_profile') {
-          companyProfileData = result.data;
         }
       }
     }
@@ -222,8 +217,10 @@ export async function fetchStockData(ticker, env) {
     // data for any valid ticker, so its absence is the real signal that a ticker
     // does not exist. Report NOT_FOUND only for that case.
     if (!historyData) {
-      // If the live quote was merely throttled, do not claim the ticker is unknown.
-      if (marketStatusRateLimited) {
+      // If the live quote was merely throttled, do not claim the ticker is unknown —
+      // unless Yahoo already looked the symbol up and found nothing, which together
+      // with the missing history is two independent sources saying it does not exist.
+      if (marketStatusRateLimited && !quoteSaysUnknownSymbol) {
         throw new BotError(
           ErrorTypes.RATE_LIMIT,
           'Market data is rate limited right now. Please try again in a moment.',
@@ -241,11 +238,10 @@ export async function fetchStockData(ticker, env) {
       );
     }
 
-    // Degrade gracefully when the live quote is unavailable but history is not.
-    // Previously a single Finnhub 429 produced "ticker not found", which sent us
-    // chasing a data problem that did not exist (2026-08-18). Fall back to the most
-    // recent close from history and mark the price as delayed.
-    const companyName = companyProfileData ? companyProfileData.name : ticker;
+    // Yahoo returns the company name alongside the quote. Finnhub's quote endpoint
+    // does not, so a fallback quote leaves the cached profile in charge of the name.
+    const companyName =
+      marketStatusData?.companyName || cachedCompanyProfile?.name || ticker;
     let priceData;
 
     if (marketStatusData) {
@@ -298,13 +294,20 @@ export async function fetchStockData(ticker, env) {
     }
 
     if (!cachedMarketStatus && marketStatusData) {
-      // Cache the raw Finnhub data
+      // Cache the normalized quote (1 min TTL)
       cacheUpdatePromises.push(setCached(cacheKV, 'market_status', ticker, marketStatusData));
     }
 
-    if (!cachedCompanyProfile && companyProfileData) {
-      // Cache company profile (3 day TTL - company names rarely change)
-      cacheUpdatePromises.push(setCached(cacheKV, 'company_profile', ticker, companyProfileData));
+    // Keep the 3-day company-profile cache fed from the quote, so a later Yahoo
+    // failure still has a name to fall back on.
+    if (!cachedCompanyProfile && marketStatusData?.companyName) {
+      cacheUpdatePromises.push(
+        setCached(cacheKV, 'company_profile', ticker, {
+          ticker,
+          name: marketStatusData.companyName,
+          fallback: false
+        })
+      );
     }
 
     // Update caches (fire and forget, don't wait)

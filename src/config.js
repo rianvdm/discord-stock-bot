@@ -46,11 +46,16 @@ export const CONFIG = {
   OPENAI_TIMEOUT: 30000,    // 30 seconds for AI summary with web search
   PERPLEXITY_TIMEOUT: 30000, // 30 seconds for AI summary with web search
   FINNHUB_TIMEOUT: 5000,    // 5 seconds for real-time market status check
+  YAHOO_TIMEOUT: 5000,      // 5 seconds for the primary live quote
   COMMAND_TIMEOUT: 45000,   // 45 seconds overall command timeout (sends error if exceeded)
 
   // Finnhub 429 retry. Finnhub throttles by source as well as by key, and Workers
   // share Cloudflare egress IPs, so quotes can be rate limited even when the key's
-  // own quota is mostly unused. These 429s are transient — retry briefly.
+  // own quota is mostly unused. Measured from the PDX colo on 2026-08-21: 13 of 20
+  // calls returned an nginx 429 carrying no x-ratelimit-* headers, while the calls
+  // that got through reported 58 of 60 remaining on the key. Finnhub is therefore
+  // the fallback quote source, not the primary one, and these retries only cover
+  // the case where Yahoo is also unavailable.
   // Worst case added latency: 200 + 400 = 600ms plus jitter, well inside FINNHUB_TIMEOUT.
   FINNHUB_MAX_ATTEMPTS: 3,      // 1 initial attempt + 2 retries
   FINNHUB_RETRY_BASE_MS: 200,   // exponential base; jitter up to this much is added

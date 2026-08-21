@@ -19,14 +19,15 @@ vi.mock('../../src/services/ai-summary.js', () => ({
   generateAISummary: vi.fn(async () => 'A summary.'),
 }));
 
-vi.mock('../../src/services/finnhub.js', () => ({
-  fetchMarketStatus: vi.fn(),
-  fetchCompanyProfile: vi.fn(async () => ({ name: 'Cloudflare Inc.' })),
+// The quote router is the seam stock.js talks to. Mocking it keeps these tests
+// off the network and lets each failure mode be driven directly.
+vi.mock('../../src/services/quote.js', () => ({
+  fetchQuote: vi.fn(),
 }));
 
 const { fetchStockData } = await import('../../src/commands/stock.js');
 const { fetchHistoricalData } = await import('../../src/services/massive.js');
-const { fetchMarketStatus } = await import('../../src/services/finnhub.js');
+const { fetchQuote } = await import('../../src/services/quote.js');
 const { ErrorTypes } = await import('../../src/utils/errorHandler.js');
 
 const HISTORY = {
@@ -50,7 +51,7 @@ describe('/stock resilience when the live quote fails', () => {
 
   it('falls back to the last close instead of claiming the ticker does not exist', async () => {
     fetchHistoricalData.mockResolvedValue(HISTORY);
-    fetchMarketStatus.mockRejectedValue(rateLimitError());
+    fetchQuote.mockRejectedValue(rateLimitError());
 
     const data = await fetchStockData('NET', env);
 
@@ -65,7 +66,7 @@ describe('/stock resilience when the live quote fails', () => {
 
   it('still reports a real unknown ticker as NOT_FOUND', async () => {
     fetchHistoricalData.mockRejectedValue(new Error('Stock ticker not found'));
-    fetchMarketStatus.mockResolvedValue({
+    fetchQuote.mockResolvedValue({
       isOpen: true, timestamp: 1787074949, currentPrice: 300.05, change: -6.96, changePercent: -2.267,
     });
 
@@ -76,7 +77,7 @@ describe('/stock resilience when the live quote fails', () => {
 
   it('reports RATE_LIMIT, not NOT_FOUND, when both history and quote are throttled', async () => {
     fetchHistoricalData.mockRejectedValue(new Error('Massive.com API error: 429 Too Many Requests'));
-    fetchMarketStatus.mockRejectedValue(rateLimitError());
+    fetchQuote.mockRejectedValue(rateLimitError());
 
     await expect(fetchStockData('NET', env)).rejects.toMatchObject({
       type: ErrorTypes.RATE_LIMIT,
@@ -85,7 +86,7 @@ describe('/stock resilience when the live quote fails', () => {
 
   it('uses the live quote when it is available', async () => {
     fetchHistoricalData.mockResolvedValue(HISTORY);
-    fetchMarketStatus.mockResolvedValue({
+    fetchQuote.mockResolvedValue({
       isOpen: true, timestamp: 1787074949, currentPrice: 300.05, change: -6.96, changePercent: -2.267,
     });
 
@@ -94,5 +95,29 @@ describe('/stock resilience when the live quote fails', () => {
     expect(data.price.currentPrice).toBe(300.05);
     expect(data.price.isDelayed).toBe(false);
     expect(data.price.isOpen).toBe(true);
+  });
+
+  it('reports NOT_FOUND when the quote source knows the symbol is unknown, even while throttled', async () => {
+    fetchHistoricalData.mockRejectedValue(new Error('Stock ticker not found'));
+    const error = rateLimitError();
+    error.isUnknownSymbol = true;
+    fetchQuote.mockRejectedValue(error);
+
+    // Two independent sources found nothing, so "rate limited" would be misleading.
+    await expect(fetchStockData('ZZZZQQ', env)).rejects.toMatchObject({
+      type: ErrorTypes.NOT_FOUND,
+    });
+  });
+
+  it('takes the company name from the quote when the source supplies one', async () => {
+    fetchHistoricalData.mockResolvedValue(HISTORY);
+    fetchQuote.mockResolvedValue({
+      isOpen: true, timestamp: 1787074949, currentPrice: 300.05, change: -6.96, changePercent: -2.267,
+      companyName: 'Cloudflare, Inc.', source: 'yahoo',
+    });
+
+    const data = await fetchStockData('NET', env);
+
+    expect(data.price.companyName).toBe('Cloudflare, Inc.');
   });
 });

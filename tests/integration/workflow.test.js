@@ -125,7 +125,35 @@ describe('Integration: Complete Bot Workflows', () => {
         });
       }
 
-      // Finnhub quote endpoint (real-time price/market status)
+      // Yahoo Finance chart endpoint (primary live quote, also carries the company name)
+      if (url.includes('query1.finance.yahoo.com/v8/finance/chart')) {
+        const now = Math.floor(Date.now() / 1000);
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            chart: {
+              result: [
+                {
+                  meta: {
+                    symbol: 'AAPL',
+                    regularMarketPrice: 177.25,
+                    chartPreviousClose: 175.43,
+                    regularMarketTime: now,
+                    longName: 'Apple Inc.',
+                    currentTradingPeriod: {
+                      regular: { start: now - 3600, end: now + 3600 },
+                    },
+                  },
+                },
+              ],
+              error: null,
+            },
+          }),
+        });
+      }
+
+      // Finnhub quote endpoint (fallback real-time price/market status)
       if (url.includes('finnhub.io/api/v1/quote')) {
         return Promise.resolve({
           ok: true,
@@ -139,28 +167,6 @@ describe('Integration: Complete Bot Workflows', () => {
             o: 176.50,  // open
             pc: 175.43, // previous close
             t: Math.floor(Date.now() / 1000), // timestamp (now = market open)
-          }),
-        });
-      }
-
-      // Finnhub company profile endpoint
-      if (url.includes('finnhub.io/api/v1/stock/profile2')) {
-        return Promise.resolve({
-          ok: true,
-          status: 200,
-          json: async () => ({
-            ticker: 'AAPL',
-            name: 'Apple Inc.',
-            country: 'US',
-            currency: 'USD',
-            exchange: 'NASDAQ',
-            ipo: '1980-12-12',
-            marketCapitalization: 2800000,
-            shareOutstanding: 15821.9,
-            logo: 'https://static.finnhub.io/logo/87cb30d8-80df-11ea-8951-00000000092a.png',
-            phone: '14089961010',
-            weburl: 'https://www.apple.com/',
-            finnhubIndustry: 'Technology',
           }),
         });
       }
