@@ -213,10 +213,11 @@ export async function fetchStockData(ticker, env) {
       }
     }
 
-    // Historical data is the only genuinely required piece: Massive.com returns
-    // data for any valid ticker, so its absence is the real signal that a ticker
-    // does not exist. Report NOT_FOUND only for that case.
-    if (!historyData) {
+    // A ticker exists if either source knows it. Missing history alone is not
+    // enough to call it unknown: a new listing has a live quote but no daily
+    // bars until its first session closes. Report NOT_FOUND only when the quote
+    // is missing too.
+    if (!historyData && !marketStatusData) {
       // If the live quote was merely throttled, do not claim the ticker is unknown —
       // unless Yahoo already looked the symbol up and found nothing, which together
       // with the missing history is two independent sources saying it does not exist.
@@ -317,11 +318,13 @@ export async function fetchStockData(ticker, env) {
       });
     }
 
-    // Step 5: Return complete stock data
+    // Step 5: Return complete stock data. History is null for a new listing
+    // that has no daily bars yet; it is not cached, so the first bar shows up
+    // as soon as Massive publishes it.
     return {
       ticker,
       price: priceData,
-      history: historyData,
+      history: historyData || null,
       summary: summaryData || null, // null if AI summary failed
       marketStatus: marketStatusData || null // null if market status failed
     };
@@ -361,17 +364,13 @@ export async function fetchStockData(ticker, env) {
 function buildStockResponse(stockData) {
   const { price, history, summary } = stockData;
 
-  // Combine 29 days of historical data with current price for accurate 30-day trend
-  // Use last 29 trading days from historical data, then append current price from Finnhub
-  // We fetch 42 calendar days to ensure we have at least 30 trading days (stocks don't trade on weekends)
-  const last29Days = history.closingPrices.slice(-29);
-  const trendPrices = [...last29Days, price.currentPrice];
-  
-  // Generate chart from combined price data
-  const chart = formatChartWithLabels(trendPrices);
+  // Combine the last 29 trading days with the current price for a 30-day trend.
+  // We fetch 42 calendar days to ensure at least 30 trading days. A new listing
+  // has no daily bars yet, so it gets no chart and the embed says why.
+  const chart = history
+    ? formatChartWithLabels([...history.closingPrices.slice(-29), price.currentPrice])
+    : null;
 
-  // Price data now always comes from Finnhub
-  // Market open status is included in price data
   const marketOpen = price.isOpen;
 
   // Build the stock embed with all data

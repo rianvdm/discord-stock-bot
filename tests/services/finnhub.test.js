@@ -215,6 +215,19 @@ describe('Finnhub Service', () => {
       );
     });
 
+    it('should reject the zero-filled quote Finnhub returns for a symbol with no trades', async () => {
+      // Finnhub answers 200 with every field zeroed for symbols it cannot quote,
+      // including a just-listed stock before its first trade.
+      global.fetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ c: 0, d: null, dp: null, h: 0, l: 0, o: 0, pc: 0, t: 0 })
+      });
+
+      await expect(fetchMarketStatus(mockTicker, mockApiKey)).rejects.toThrow(
+        `Finnhub has no price for ${mockTicker}`
+      );
+    });
+
     it('should handle timeout errors', async () => {
       vi.useRealTimers(); // Use real timers for actual timeout behavior
       
