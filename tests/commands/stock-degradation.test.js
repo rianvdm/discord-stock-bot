@@ -13,6 +13,7 @@ vi.mock('../../src/services/massive.js', () => ({
   fetchHistoricalData: vi.fn(),
   suggestTickers: vi.fn(() => []),
   getCompanyName: vi.fn(() => 'Cloudflare Inc.'),
+  getTickerFromCompanyName: vi.fn(() => null),
 }));
 
 vi.mock('../../src/services/ai-summary.js', () => ({
@@ -25,7 +26,11 @@ vi.mock('../../src/services/quote.js', () => ({
   fetchQuote: vi.fn(),
 }));
 
-const { fetchStockData } = await import('../../src/commands/stock.js');
+vi.mock('../../src/middleware/rateLimit.js', () => ({
+  enforceRateLimit: vi.fn(async () => null),
+}));
+
+const { fetchStockData, handleStockCommand } = await import('../../src/commands/stock.js');
 const { fetchHistoricalData } = await import('../../src/services/massive.js');
 const { fetchQuote } = await import('../../src/services/quote.js');
 const { ErrorTypes } = await import('../../src/utils/errorHandler.js');
@@ -66,9 +71,7 @@ describe('/stock resilience when the live quote fails', () => {
 
   it('still reports a real unknown ticker as NOT_FOUND', async () => {
     fetchHistoricalData.mockRejectedValue(new Error('Stock ticker not found'));
-    fetchQuote.mockResolvedValue({
-      isOpen: true, timestamp: 1787074949, currentPrice: 300.05, change: -6.96, changePercent: -2.267,
-    });
+    fetchQuote.mockRejectedValue(new Error('Finnhub has no price for FAKETICKER'));
 
     await expect(fetchStockData('FAKETICKER', env)).rejects.toMatchObject({
       type: ErrorTypes.NOT_FOUND,
@@ -119,5 +122,56 @@ describe('/stock resilience when the live quote fails', () => {
     const data = await fetchStockData('NET', env);
 
     expect(data.price.companyName).toBe('Cloudflare, Inc.');
+  });
+});
+
+describe('/stock on a new listing with no daily history yet', () => {
+  // ANT on its first trading day, 2026-11-19: Massive had zero daily bars,
+  // Yahoo had no previous close, and Finnhub quoted it against the IPO price.
+  const FIRST_DAY_QUOTE = {
+    isOpen: true, timestamp: 1795115001, currentPrice: 95.33, change: 12.33, changePercent: 14.8554,
+    source: 'finnhub',
+  };
+
+  const interaction = {
+    id: '1',
+    type: 2,
+    data: { name: 'stock', options: [{ name: 'ticker', value: 'ANT' }] },
+    user: { id: 'user1', username: 'tester' },
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fetchHistoricalData.mockRejectedValue(new Error('No historical data available for this ticker'));
+    fetchQuote.mockResolvedValue(FIRST_DAY_QUOTE);
+  });
+
+  it('serves the live quote instead of claiming the ticker does not exist', async () => {
+    const data = await fetchStockData('ANT', env);
+
+    expect(data.price.currentPrice).toBe(95.33);
+    expect(data.price.changePercent).toBeCloseTo(14.8554, 4);
+    expect(data.price.isDelayed).toBe(false);
+    expect(data.history).toBeNull();
+  });
+
+  it('does not cache the missing history, so the first daily bar is picked up once it exists', async () => {
+    const { setCached } = await import('../../src/middleware/cache.js');
+
+    await fetchStockData('ANT', env);
+
+    const cachedTypes = setCached.mock.calls.map(call => call[1]);
+    expect(cachedTypes).not.toContain('history');
+  });
+
+  it('replies with a price and a new-listing note in place of the trend chart', async () => {
+    const response = await handleStockCommand(interaction, env);
+    const embed = response.data.embeds[0];
+
+    const priceField = embed.fields.find(f => f.name.includes('💰'));
+    expect(priceField.value).toContain('$95.33');
+
+    const trendField = embed.fields.find(f => f.name.includes('Trend'));
+    expect(trendField.value).toMatch(/new listing/i);
   });
 });

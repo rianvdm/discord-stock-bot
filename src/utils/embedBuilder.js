@@ -21,7 +21,7 @@ export function getEmbedColor(changePercent) {
 /**
  * Builds a rich embed for stock data
  * @param {Object} stockData - Stock price and company information from the quote router
- * @param {string} chart - Formatted ASCII chart with labels
+ * @param {string|null} chart - Formatted ASCII chart with labels, or null for a new listing with no daily history
  * @param {string|null} aiSummary - AI-generated news summary (optional)
  * @param {boolean} marketOpen - Whether the market is currently open
  * @returns {Object} Discord embed object
@@ -65,7 +65,9 @@ export function buildStockEmbed(stockData, chart, aiSummary, marketOpen) {
     },
     {
       name: '📈 30-Day Trend',
-      value: `\`\`\`\n${chart}\n\`\`\``,
+      value: chart
+        ? `\`\`\`\n${chart}\n\`\`\``
+        : '🆕 New listing: no trading history yet. The trend fills in as daily closes arrive.',
       inline: false
     },
     {

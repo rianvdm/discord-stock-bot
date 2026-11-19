@@ -151,7 +151,7 @@ Bot: ₿ BTC - Bitcoin
    ```bash
    npm test
    ```
-   You should see 398 tests passing ✅
+   You should see 405 tests passing ✅
 
 8. **Start Local Development**
    ```bash
@@ -238,7 +238,7 @@ For detailed deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUI
   - OpenAI Responses API (AI summaries — `gpt-5.6-terra` with the `web_search` tool). Default provider.
   - Perplexity API (alternate AI summary provider, SONAR model with web search)
 - **Storage**: Cloudflare KV (caching & rate limiting)
-- **Testing**: Vitest (398 tests, comprehensive coverage)
+- **Testing**: Vitest (405 tests, comprehensive coverage)
 
 ## 🔧 Development
 
@@ -307,7 +307,7 @@ npm run test:watch
 npm test -- --coverage
 ```
 
-Current test results: **398 tests passing** ✅
+Current test results: **405 tests passing** ✅
 - 269 unit tests
 - 11 integration tests
 

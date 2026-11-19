@@ -103,6 +103,14 @@ describe('buildStockEmbed', () => {
     expect(chartField.value).toContain(mockChart);
   });
 
+  it('should explain a missing trend chart instead of rendering an empty one', () => {
+    const embed = buildStockEmbed(mockStockData, null, mockAiSummary, true);
+
+    const chartField = embed.fields.find(f => f.name.includes('Trend'));
+    expect(chartField.value).toMatch(/new listing/i);
+    expect(chartField.value).not.toContain('```');
+  });
+
   it('should include AI summary field when provided', () => {
     const embed = buildStockEmbed(mockStockData, mockChart, mockAiSummary, true);
 

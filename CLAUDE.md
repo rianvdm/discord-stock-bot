@@ -122,7 +122,7 @@ A Discord bot providing real-time stock and cryptocurrency information with AI-p
 
 ### Testing
 ```bash
-npm test                    # Run all tests once (398 tests)
+npm test                    # Run all tests once (405 tests)
 npm run test:watch          # Run tests in watch mode
 npm test -- tests/commands/stock.test.js  # Run specific test file
 npm test -- --coverage      # Run with coverage report
@@ -259,7 +259,7 @@ Promise.all([setCached(...), ...]).catch(error => console.warn(...));
 - Mock KV namespaces: `{ get: vi.fn(), put: vi.fn(), delete: vi.fn() }`
 - Mock environment: `{ RATE_LIMITS: mockKV, CACHE: mockKV, MASSIVE_API_KEY: '...' }`
 - Test error cases and edge cases thoroughly
-- Current: 398 tests across 23 files
+- Current: 405 tests across 23 files
 
 **Running Tests:**
 ```bash
@@ -411,6 +411,15 @@ wrangler kv:key get --binding=CACHE "stock:price:AAPL"  # Get specific cached va
 > `readPreviousClose()` in `yahooFinance.js` takes the last valid close before the current
 > session's bar. The `range` therefore has to cover more than one session; do not shrink it
 > back to `1d` to save bytes.
+
+> **Gotcha — new listings have a quote but no history.** On a stock's first trading day Massive
+> returns zero daily bars and Yahoo has no previous close, so only Finnhub can quote it (against
+> the IPO price, as `pc`). `fetchStockData` therefore reports NOT_FOUND only when history *and*
+> the live quote are both missing, and the embed shows a "new listing" note in place of the
+> chart. Empty history is never cached, so the first daily bar appears as soon as Massive has it.
+> Finnhub answers 200 with every field zeroed for a symbol it cannot quote; `finnhub.js` rejects
+> that, because a $0 quote would otherwise pass as proof the ticker exists. Seen with ANT on
+> 2026-11-19.
 
 **Finnhub (Real-time Quotes) — fallback:**
 - Free tier: 60 calls/minute, but see the egress note at the top of this file

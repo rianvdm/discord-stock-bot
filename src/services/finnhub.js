@@ -123,6 +123,14 @@ async function fetchMarketStatusOnce(ticker, apiKey) {
       throw new Error('Invalid data received from Finnhub API');
     }
 
+    // Finnhub answers 200 with every field zeroed when it has no trade for the
+    // symbol: an unknown ticker, or a new listing before its first trade. That
+    // is the absence of a quote, and the caller treats a quote as proof that the
+    // ticker exists, so it must not pass as a $0 price.
+    if (data.c <= 0) {
+      throw new Error(`Finnhub has no price for ${ticker}`);
+    }
+
     // Determine if market is open based on data freshness
     // If the quote timestamp is within the last 5 minutes, consider market open
     const currentTime = Math.floor(Date.now() / 1000); // Current time in unix seconds
