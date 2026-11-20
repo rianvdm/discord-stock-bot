@@ -217,8 +217,8 @@ Discord → Cloudflare Worker → Command Router → Rate Limiter → Cache Laye
 **API Timeouts:**
 - `MASSIVE_TIMEOUT: 10000` - Massive.com (10s)
 - `FINNHUB_TIMEOUT: 5000` - Finnhub (5s)
-- `OPENAI_TIMEOUT: 30000` - OpenAI (30s)
-- `COMMAND_TIMEOUT: 45000` - Overall command timeout (45s)
+- `OPENAI_TIMEOUT: 20000` - OpenAI (20s); a slow summary is dropped and the price still posts
+- `COMMAND_TIMEOUT: 25000` - Overall command timeout (25s). Commands run in `ctx.waitUntil()`, which Workers cancel 30 s after the response with no follow-up sent, so this must stay under `WAIT_UNTIL_LIMIT` with room for the error message. `tests/config.test.js` enforces it.
 
 ## Caching Strategy
 

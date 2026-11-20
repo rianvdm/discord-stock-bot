@@ -397,8 +397,9 @@ export const CONFIG = {
   DEFAULT_PERIOD_DAYS: 7,              // Historical data period
   MASSIVE_TIMEOUT: 10000,              // Massive.com API timeout (ms)
   FINNHUB_TIMEOUT: 5000,               // Finnhub API timeout (ms)
-  OPENAI_TIMEOUT: 30000,               // OpenAI timeout (ms)
-  PERPLEXITY_TIMEOUT: 30000,           // Perplexity timeout (ms)
+  OPENAI_TIMEOUT: 20000,               // OpenAI timeout (ms)
+  PERPLEXITY_TIMEOUT: 20000,           // Perplexity timeout (ms)
+  COMMAND_TIMEOUT: 25000,              // Whole command, inside waitUntil's 30 s limit (ms)
   AI_SUMMARY_PROVIDER: 'openai',       // 'openai' or 'perplexity' — one line to switch
   EMBED_COLOR_POSITIVE: 0x00ff00,      // Green
   EMBED_COLOR_NEGATIVE: 0xff0000,      // Red
