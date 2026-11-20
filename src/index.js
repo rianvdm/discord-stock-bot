@@ -92,7 +92,8 @@ export default {
         switch (commandName) {
           case 'stock':
             // Use deferred response for slow stock commands
-            // This allows up to 15 minutes to fetch data instead of 3 seconds
+            // The work runs in waitUntil, which Workers cancel 30 s after the response;
+            // CONFIG.COMMAND_TIMEOUT keeps it inside that so an error can still be sent
             response = createDeferredResponse(false);
             
             // Process command in background and send follow-up
@@ -166,7 +167,8 @@ export default {
           
           case 'crypto':
             // Use deferred response for slow crypto commands
-            // This allows up to 15 minutes to fetch data instead of 3 seconds
+            // The work runs in waitUntil, which Workers cancel 30 s after the response;
+            // CONFIG.COMMAND_TIMEOUT keeps it inside that so an error can still be sent
             response = createDeferredResponse(false);
             
             // Process command in background and send follow-up

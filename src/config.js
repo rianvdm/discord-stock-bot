@@ -14,6 +14,7 @@
  * @property {number} STOCK_HISTORY_DAYS - Calendar days to fetch for stocks to get ~30 trading days
  * @property {number} CRYPTO_HISTORY_DAYS - Calendar days to fetch for crypto (trades 24/7)
  * @property {number} MASSIVE_TIMEOUT - API timeout for Massive.com requests in milliseconds
+ * @property {number} WAIT_UNTIL_LIMIT - Workers' ctx.waitUntil() limit after the response, in milliseconds
  * @property {number} OPENAI_TIMEOUT - API timeout for OpenAI requests in milliseconds
  * @property {string} AI_SUMMARY_PROVIDER - Active AI summary provider ('perplexity' or 'openai')
  * @property {number} PERPLEXITY_TIMEOUT - API timeout for Perplexity requests in milliseconds
@@ -41,13 +42,19 @@ export const CONFIG = {
   CRYPTO_HISTORY_DAYS: 30,     // Crypto trades 24/7, so 30 calendar days = 30 data points
 
   // API Timeouts (milliseconds)
-  // Using deferred responses, we have up to 15 minutes
+  // Commands run inside ctx.waitUntil() after the deferred reply, and Workers cancel
+  // waitUntil work 30 seconds after the response, silently: the user never gets a
+  // follow-up. Discord's 15-minute follow-up window doesn't help, because the Worker
+  // is gone by then. So the whole command, including its error follow-up, must
+  // finish inside WAIT_UNTIL_LIMIT. The AI summary is optional, so it gets the
+  // shortest leash that still fits it; a slow summary is dropped and the price posts.
+  WAIT_UNTIL_LIMIT: 30000,  // Workers platform limit, not tunable
   MASSIVE_TIMEOUT: 10000,   // 10 seconds for stock data
-  OPENAI_TIMEOUT: 30000,    // 30 seconds for AI summary with web search
-  PERPLEXITY_TIMEOUT: 30000, // 30 seconds for AI summary with web search
+  OPENAI_TIMEOUT: 20000,    // 20 seconds for AI summary with web search (7-day max seen: 16.4 s)
+  PERPLEXITY_TIMEOUT: 20000, // 20 seconds for AI summary with web search
   FINNHUB_TIMEOUT: 5000,    // 5 seconds for real-time market status check
   YAHOO_TIMEOUT: 5000,      // 5 seconds for the primary live quote
-  COMMAND_TIMEOUT: 45000,   // 45 seconds overall command timeout (sends error if exceeded)
+  COMMAND_TIMEOUT: 25000,   // 25 seconds overall, leaving time to send the error follow-up
 
   // Finnhub 429 retry. Finnhub throttles by source as well as by key, and Workers
   // share Cloudflare egress IPs, so quotes can be rate limited even when the key's
